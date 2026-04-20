@@ -1,0 +1,13 @@
+node_modules/
+.env
+bun.lockb
+
+# Generated runtime data
+data/kichi.db
+data/kichi.db-wal
+data/kichi.db-shm
+data/qrs/*.png
+data/exports/*.zip
+
+# Frontend build output
+frontend/dist/
