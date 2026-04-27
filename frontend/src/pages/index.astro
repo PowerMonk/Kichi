@@ -2,25 +2,22 @@
 import "../styles/global.css";
 ---
 
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
-    <title>Kichi - QR codes from your attendee list</title>
+    <title>Kichi - codigos QR desde tu lista</title>
     <meta
       name="description"
-      content="Drop an XLSX or CSV and generate one QR code per attendee with a local-first workflow."
+      content="Sube un XLSX o CSV y genera un codigo QR por asistente con un flujo local-first."
     />
-    <meta
-      property="og:title"
-      content="Kichi - QR codes from your attendee list"
-    />
+    <meta property="og:title" content="Kichi - codigos QR desde tu lista" />
     <meta
       property="og:description"
-      content="Turn any spreadsheet into per-attendee QR codes for events."
+      content="Convierte cualquier hoja en codigos QR por asistente para eventos."
     />
   </head>
 
@@ -34,9 +31,18 @@ import "../styles/global.css";
           <div
             class="mono hidden items-center gap-4 text-xs uppercase tracking-[0.2em] text-(--muted) sm:flex"
           >
-            <span>qr toolkit</span>
+            <span id="hdr-toolkit">qr toolkit</span>
             <span class="h-1 w-1 rounded-full bg-(--signal)"></span>
-            <span>local-first</span>
+            <span id="hdr-local">local-first</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <button
+              id="lang-toggle"
+              type="button"
+              class="btn-secondary px-3! py-2! text-[0.68rem]!"
+            >
+              EN
+            </button>
           </div>
         </div>
       </header>
@@ -46,13 +52,42 @@ import "../styles/global.css";
           <h1
             class="max-w-4xl text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl"
           >
-            Spreadsheet in.
+            <span id="hero-line-1">Lista en hoja.</span>
             <br />
-            <span class="mono text-(--signal)">QR batch out.</span>
+            <span id="hero-line-2" class="mono text-(--signal)"
+              >Lote QR fuera.</span
+            >
           </h1>
-          <p class="max-w-2xl text-base text-(--muted) sm:text-lg">
-            Upload a CSV or XLSX, map your columns, generate attendee QR codes.
+          <p
+            id="hero-subtitle"
+            class="max-w-2xl text-base text-(--muted) sm:text-lg"
+          >
+            Sube un CSV o XLSX, mapea columnas y genera codigos QR por
+            asistente.
           </p>
+        </section>
+
+        <section class="surface-card mt-8 p-6 sm:p-8">
+          <p
+            id="trusted-title"
+            class="mono text-center text-xs uppercase tracking-[0.24em] text-(--muted)"
+          >
+            Con la confianza de profesionales en
+          </p>
+          <div class="mt-5 flex flex-wrap items-center justify-center gap-8">
+            <img
+              src="/mecat_logo.png"
+              alt="Logo MECAT"
+              class="h-16 w-auto object-contain"
+              loading="lazy"
+            />
+            <img
+              src="/canacintra_logo.png"
+              alt="Logo CANACINTRA"
+              class="h-16 w-auto object-contain"
+              loading="lazy"
+            />
+          </div>
         </section>
 
         <section class="surface-card mt-8 space-y-5 p-6 sm:p-8">
@@ -61,13 +96,16 @@ import "../styles/global.css";
             class="dropzone"
             tabindex="0"
             role="button"
-            aria-label="Drop CSV or XLSX file here"
+            aria-label="Suelta aqui tu archivo CSV o XLSX"
           >
-            <p class="mono text-sm uppercase tracking-[0.22em] text-(--signal)">
-              drag and drop spreadsheet
+            <p
+              id="drop-title"
+              class="mono text-sm uppercase tracking-[0.22em] text-(--signal)"
+            >
+              arrastra y suelta tu hoja
             </p>
-            <p class="mt-3 text-base text-(--muted)">
-              or click browse and select a file
+            <p id="drop-subtitle" class="mt-3 text-base text-(--muted)">
+              o haz clic en explorar y selecciona un archivo
             </p>
             <input
               id="file-input"
@@ -78,23 +116,23 @@ import "../styles/global.css";
           </div>
 
           <p id="selected-file" class="text-sm text-(--muted)">
-            No file selected.
+            Ningun archivo seleccionado.
           </p>
 
           <div class="flex flex-wrap gap-3">
             <button id="browse-button" type="button" class="btn-primary"
-              >Browse file</button
+              >Explorar archivo</button
             >
             <button id="demo-button" type="button" class="btn-secondary"
-              >Use demo CSV file</button
+              >Usar archivo demo CSV</button
             >
             <button id="parse-button" type="button" class="btn-secondary"
-              >Analyze columns</button
+              >Analizar columnas</button
             >
           </div>
 
           <div id="status" class="status-panel status-panel--neutral">
-            Waiting for file.
+            Esperando archivo.
           </div>
         </section>
 
@@ -102,27 +140,35 @@ import "../styles/global.css";
           id="mapping-section"
           class="surface-card mt-8 hidden p-6 sm:p-8"
         >
-          <h2 class="text-2xl font-semibold tracking-tight">Map columns</h2>
-          <p class="mt-2 text-sm text-(--muted)">
-            Select spreadsheet columns for required fields.
+          <h2 id="mapping-title" class="text-2xl font-semibold tracking-tight">
+            Mapear columnas
+          </h2>
+          <p id="mapping-subtitle" class="mt-2 text-sm text-(--muted)">
+            Selecciona las columnas para los campos requeridos.
           </p>
 
           <form id="mapping-form" class="mt-6 grid gap-4 sm:grid-cols-2">
             <div>
-              <label class="field-label" for="map-name">Name</label>
+              <label id="label-name" class="field-label" for="map-name"
+                >Nombre</label
+              >
               <select id="map-name" class="field-select mono text-sm"></select>
             </div>
             <div>
-              <label class="field-label" for="map-email">Email</label>
+              <label id="label-email" class="field-label" for="map-email"
+                >Correo</label
+              >
               <select id="map-email" class="field-select mono text-sm"></select>
             </div>
             <div>
-              <label class="field-label" for="map-role">Role</label>
+              <label id="label-role" class="field-label" for="map-role"
+                >Rol</label
+              >
               <select id="map-role" class="field-select mono text-sm"></select>
             </div>
             <div>
-              <label class="field-label" for="map-control"
-                >Event identifier</label
+              <label id="label-control" class="field-label" for="map-control"
+                >Identificador del evento</label
               >
               <select id="map-control" class="field-select mono text-sm"
               ></select>
@@ -131,11 +177,13 @@ import "../styles/global.css";
               class="mono mt-2 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-(--muted) sm:col-span-2"
             >
               <input id="send-emails" type="checkbox" />
-              send sequential emails (requires SMTP env vars)
+              <span id="send-emails-label"
+                >enviar correos secuenciales (requiere variables SMTP)</span
+              >
             </label>
             <div class="sm:col-span-2">
               <button id="generate-button" type="submit" class="btn-primary">
-                Generate QR batch
+                Generar lote QR
               </button>
             </div>
           </form>
@@ -145,42 +193,52 @@ import "../styles/global.css";
           id="results-section"
           class="surface-card mt-8 hidden p-6 sm:p-8"
         >
-          <h2 class="text-2xl font-semibold tracking-tight">Results</h2>
+          <h2 id="results-title" class="text-2xl font-semibold tracking-tight">
+            Resultados
+          </h2>
           <div class="summary-grid mt-5">
             <article class="summary-card">
-              <p class="summary-label">rows</p>
+              <p id="sum-label-rows" class="summary-label">filas</p>
               <p id="sum-rows" class="summary-value">0</p>
             </article>
             <article class="summary-card">
-              <p class="summary-label">generated</p>
+              <p id="sum-label-generated" class="summary-label">generados</p>
               <p id="sum-created" class="summary-value">0</p>
             </article>
             <article class="summary-card">
-              <p class="summary-label">failed</p>
+              <p id="sum-label-failed" class="summary-label">fallidos</p>
               <p id="sum-failed" class="summary-value">0</p>
             </article>
             <article class="summary-card">
-              <p class="summary-label">emails sent</p>
+              <p id="sum-label-emails" class="summary-label">
+                correos enviados
+              </p>
               <p id="sum-emails" class="summary-value">0</p>
             </article>
           </div>
 
           <div class="mt-5 flex flex-wrap gap-3">
             <a id="zip-link" class="btn-primary hidden" href="#" download
-              >Download ZIP batch</a
+              >Descargar lote ZIP</a
             >
           </div>
 
           <div class="mt-6">
-            <h3 class="mono text-xs uppercase tracking-[0.22em] text-(--muted)">
-              generated qr files
+            <h3
+              id="generated-files-title"
+              class="mono text-xs uppercase tracking-[0.22em] text-(--muted)"
+            >
+              qr generados
             </h3>
             <div id="qr-list" class="mt-3 grid gap-3 sm:grid-cols-2"></div>
           </div>
 
           <div class="mt-6">
-            <h3 class="mono text-xs uppercase tracking-[0.22em] text-(--muted)">
-              failures
+            <h3
+              id="failures-title"
+              class="mono text-xs uppercase tracking-[0.22em] text-(--muted)"
+            >
+              fallos
             </h3>
             <ul
               id="failures-list"
@@ -195,8 +253,10 @@ import "../styles/global.css";
         <div
           class="mono mx-auto flex max-w-5xl flex-col items-start justify-between gap-2 px-5 py-6 text-xs uppercase tracking-[0.2em] text-(--muted) sm:flex-row sm:items-center"
         >
-          <span>// kichi - qr toolkit for events</span>
-          <span>built for organizers who like sharp tools</span>
+          <span id="footer-left">// kichi - qr toolkit para eventos</span>
+          <span id="footer-right"
+            >hecho para organizadores que quieren herramientas precisas</span
+          >
         </div>
       </footer>
     </div>
@@ -228,10 +288,226 @@ import "../styles/global.css";
         const zipLink = document.getElementById("zip-link");
         const qrList = document.getElementById("qr-list");
         const failuresList = document.getElementById("failures-list");
+        const langToggle = document.getElementById("lang-toggle");
 
         const state = {
           file: null,
           columns: [],
+          language: "es",
+        };
+
+        const i18n = {
+          es: {
+            title: "Kichi - codigos QR desde tu lista",
+            description:
+              "Sube un XLSX o CSV y genera un codigo QR por asistente con un flujo local-first.",
+            ogTitle: "Kichi - codigos QR desde tu lista",
+            ogDescription:
+              "Convierte cualquier hoja en codigos QR por asistente para eventos.",
+            hdrToolkit: "qr toolkit",
+            hdrLocal: "local-first",
+            heroLine1: "Lista en hoja.",
+            heroLine2: "Lote QR fuera.",
+            heroSubtitle:
+              "Sube un CSV o XLSX, mapea columnas y genera codigos QR por asistente.",
+            trustedTitle: "Con la confianza de profesionales en",
+            dropAria: "Suelta aqui tu archivo CSV o XLSX",
+            dropTitle: "arrastra y suelta tu hoja",
+            dropSubtitle: "o haz clic en explorar y selecciona un archivo",
+            noFile: "Ningun archivo seleccionado.",
+            browse: "Explorar archivo",
+            demo: "Usar archivo demo CSV",
+            parse: "Analizar columnas",
+            waiting: "Esperando archivo.",
+            mappingTitle: "Mapear columnas",
+            mappingSubtitle:
+              "Selecciona las columnas para los campos requeridos.",
+            labelName: "Nombre",
+            labelEmail: "Correo",
+            labelRole: "Rol",
+            labelControl: "Identificador del evento",
+            sendEmailsLabel:
+              "enviar correos secuenciales (requiere variables SMTP)",
+            generate: "Generar lote QR",
+            resultsTitle: "Resultados",
+            sumRows: "filas",
+            sumGenerated: "generados",
+            sumFailed: "fallidos",
+            sumEmails: "correos enviados",
+            zip: "Descargar lote ZIP",
+            generatedFilesTitle: "qr generados",
+            failuresTitle: "fallos",
+            footerLeft: "// kichi - qr toolkit para eventos",
+            footerRight:
+              "hecho para organizadores que quieren herramientas precisas",
+            selectedFile: "Seleccionado: {name} ({size} KB)",
+            selectFileFirst: "Selecciona o suelta primero un archivo CSV/XLSX.",
+            analyzing: "Analizando columnas...",
+            parseFailed: "No se pudo analizar el archivo.",
+            columnsReady: "Columnas listas. Filas detectadas: {rows}.",
+            downloadQr: "Descargar QR",
+            rowPrefix: "Fila",
+            generalPrefix: "General",
+            noFailures: "Sin fallos.",
+            mappingMissing: "Faltan controles de mapeo.",
+            generating: "Generando lote QR...",
+            generationFailed: "La generacion fallo.",
+            batchCompleted: "Lote completado.",
+            loadingDemo: "Cargando CSV demo...",
+            demoMissing: "No se encontro el CSV demo en assets publicos.",
+            demoLoaded: "CSV demo cargado. Haz clic en Analizar columnas.",
+            demoLoadFailed: "No se pudo cargar el archivo demo.",
+            fileSelected:
+              "Archivo seleccionado. Haz clic en Analizar columnas.",
+            parseCatchFailed: "Fallo el analisis.",
+            fileDropped: "Archivo soltado. Haz clic en Analizar columnas.",
+            langToggle: "EN",
+          },
+          en: {
+            title: "Kichi - QR codes from your attendee list",
+            description:
+              "Upload an XLSX or CSV and generate one QR code per attendee with a local-first workflow.",
+            ogTitle: "Kichi - QR codes from your attendee list",
+            ogDescription:
+              "Turn any spreadsheet into per-attendee QR codes for events.",
+            hdrToolkit: "qr toolkit",
+            hdrLocal: "local-first",
+            heroLine1: "Spreadsheet in.",
+            heroLine2: "QR batch out.",
+            heroSubtitle:
+              "Upload a CSV or XLSX, map your columns, generate attendee QR codes.",
+            trustedTitle: "Trusted by professionals at",
+            dropAria: "Drop CSV or XLSX file here",
+            dropTitle: "drag and drop spreadsheet",
+            dropSubtitle: "or click browse and select a file",
+            noFile: "No file selected.",
+            browse: "Browse file",
+            demo: "Use demo CSV file",
+            parse: "Analyze columns",
+            waiting: "Waiting for file.",
+            mappingTitle: "Map columns",
+            mappingSubtitle: "Select spreadsheet columns for required fields.",
+            labelName: "Name",
+            labelEmail: "Email",
+            labelRole: "Role",
+            labelControl: "Event identifier",
+            sendEmailsLabel: "send sequential emails (requires SMTP env vars)",
+            generate: "Generate QR batch",
+            resultsTitle: "Results",
+            sumRows: "rows",
+            sumGenerated: "generated",
+            sumFailed: "failed",
+            sumEmails: "emails sent",
+            zip: "Download ZIP batch",
+            generatedFilesTitle: "generated qr files",
+            failuresTitle: "failures",
+            footerLeft: "// kichi - qr toolkit for events",
+            footerRight: "built for organizers who like sharp tools",
+            selectedFile: "Selected: {name} ({size} KB)",
+            selectFileFirst: "Select or drop a CSV/XLSX file first.",
+            analyzing: "Analyzing columns...",
+            parseFailed: "Failed to parse file.",
+            columnsReady: "Columns ready. Rows detected: {rows}.",
+            downloadQr: "Download QR",
+            rowPrefix: "Row",
+            generalPrefix: "General",
+            noFailures: "No failures.",
+            mappingMissing: "Mapping controls are missing.",
+            generating: "Generating QR batch...",
+            generationFailed: "Generation failed.",
+            batchCompleted: "Batch completed.",
+            loadingDemo: "Loading demo CSV...",
+            demoMissing: "Demo CSV not found in public assets.",
+            demoLoaded: "Demo CSV loaded. Click Analyze columns.",
+            demoLoadFailed: "Failed to load demo file.",
+            fileSelected: "File selected. Click Analyze columns.",
+            parseCatchFailed: "Parse failed.",
+            fileDropped: "File dropped. Click Analyze columns.",
+            langToggle: "ES",
+          },
+        };
+
+        const t = (key, params = {}) => {
+          const dict = i18n[state.language] ?? i18n.es;
+          const text = dict[key] ?? key;
+
+          return Object.entries(params).reduce((acc, [paramKey, value]) => {
+            return acc.replace(`{${paramKey}}`, String(value));
+          }, text);
+        };
+
+        const setText = (id, value) => {
+          const element = document.getElementById(id);
+          if (!element) return;
+          element.textContent = value;
+        };
+
+        const applyLanguage = () => {
+          document.documentElement.lang = state.language;
+          document.title = t("title");
+
+          const metaDescription = document.querySelector(
+            'meta[name="description"]',
+          );
+          const ogTitle = document.querySelector('meta[property="og:title"]');
+          const ogDescription = document.querySelector(
+            'meta[property="og:description"]',
+          );
+
+          if (metaDescription)
+            metaDescription.setAttribute("content", t("description"));
+          if (ogTitle) ogTitle.setAttribute("content", t("ogTitle"));
+          if (ogDescription)
+            ogDescription.setAttribute("content", t("ogDescription"));
+
+          setText("hdr-toolkit", t("hdrToolkit"));
+          setText("hdr-local", t("hdrLocal"));
+          setText("hero-line-1", t("heroLine1"));
+          setText("hero-line-2", t("heroLine2"));
+          setText("hero-subtitle", t("heroSubtitle"));
+          setText("trusted-title", t("trustedTitle"));
+          setText("drop-title", t("dropTitle"));
+          setText("drop-subtitle", t("dropSubtitle"));
+          setText("browse-button", t("browse"));
+          setText("demo-button", t("demo"));
+          setText("parse-button", t("parse"));
+          setText("mapping-title", t("mappingTitle"));
+          setText("mapping-subtitle", t("mappingSubtitle"));
+          setText("label-name", t("labelName"));
+          setText("label-email", t("labelEmail"));
+          setText("label-role", t("labelRole"));
+          setText("label-control", t("labelControl"));
+          setText("send-emails-label", t("sendEmailsLabel"));
+          setText("generate-button", t("generate"));
+          setText("results-title", t("resultsTitle"));
+          setText("sum-label-rows", t("sumRows"));
+          setText("sum-label-generated", t("sumGenerated"));
+          setText("sum-label-failed", t("sumFailed"));
+          setText("sum-label-emails", t("sumEmails"));
+          setText("zip-link", t("zip"));
+          setText("generated-files-title", t("generatedFilesTitle"));
+          setText("failures-title", t("failuresTitle"));
+          setText("footer-left", t("footerLeft"));
+          setText("footer-right", t("footerRight"));
+
+          if (dropzone) {
+            dropzone.setAttribute("aria-label", t("dropAria"));
+          }
+
+          if (langToggle) {
+            langToggle.textContent = t("langToggle");
+          }
+
+          if (!state.file && selectedFileLabel) {
+            selectedFileLabel.textContent = t("noFile");
+          }
+
+          if (
+            statusPanel &&
+            statusPanel.classList.contains("status-panel--neutral")
+          ) {
+            statusPanel.textContent = t("waiting");
+          }
         };
 
         const setStatus = (message, tone = "neutral") => {
@@ -244,8 +520,11 @@ import "../styles/global.css";
           state.file = file;
           if (selectedFileLabel) {
             selectedFileLabel.textContent = file
-              ? `Selected: ${file.name} (${Math.max(1, Math.round(file.size / 1024))} KB)`
-              : "No file selected.";
+              ? t("selectedFile", {
+                  name: file.name,
+                  size: Math.max(1, Math.round(file.size / 1024)),
+                })
+              : t("noFile");
           }
 
           if (mappingSection) {
@@ -278,11 +557,11 @@ import "../styles/global.css";
 
         const parseColumns = async () => {
           if (!state.file) {
-            setStatus("Select or drop a CSV/XLSX file first.", "error");
+            setStatus(t("selectFileFirst"), "error");
             return;
           }
 
-          setStatus("Analyzing columns...", "neutral");
+          setStatus(t("analyzing"), "neutral");
           const formData = new FormData();
           formData.append("file", state.file);
 
@@ -294,7 +573,7 @@ import "../styles/global.css";
           const payload = await response.json();
 
           if (!response.ok) {
-            setStatus(payload.error ?? "Failed to parse file.", "error");
+            setStatus(payload.error ?? t("parseFailed"), "error");
             return;
           }
 
@@ -313,7 +592,7 @@ import "../styles/global.css";
             mappingSection.classList.remove("hidden");
           }
 
-          setStatus(`Columns ready. Rows detected: ${payload.rowCount}.`, "ok");
+          setStatus(t("columnsReady", { rows: payload.rowCount }), "ok");
         };
 
         const renderResults = (result) => {
@@ -352,7 +631,7 @@ import "../styles/global.css";
               link.className = "result-link";
               link.href = `${API_BASE}${record.qrUrl}`;
               link.download = `${record.controlNumber}.png`;
-              link.textContent = "Download QR";
+              link.textContent = t("downloadQr");
 
               card.append(title, subtitle, link);
               qrList.appendChild(card);
@@ -364,15 +643,15 @@ import "../styles/global.css";
             (result.failures ?? []).forEach((failure) => {
               const item = document.createElement("li");
               const prefix = failure.rowNumber
-                ? `Row ${failure.rowNumber}`
-                : "General";
+                ? `${t("rowPrefix")} ${failure.rowNumber}`
+                : t("generalPrefix");
               item.textContent = `${prefix}: ${failure.reason}`;
               failuresList.appendChild(item);
             });
 
             if (!result.failures || result.failures.length === 0) {
               const item = document.createElement("li");
-              item.textContent = "No failures.";
+              item.textContent = t("noFailures");
               failuresList.appendChild(item);
             }
           }
@@ -386,12 +665,12 @@ import "../styles/global.css";
           event.preventDefault();
 
           if (!state.file) {
-            setStatus("Select or drop a CSV/XLSX file first.", "error");
+            setStatus(t("selectFileFirst"), "error");
             return;
           }
 
           if (!mapName || !mapEmail || !mapRole || !mapControl) {
-            setStatus("Mapping controls are missing.", "error");
+            setStatus(t("mappingMissing"), "error");
             return;
           }
 
@@ -410,7 +689,7 @@ import "../styles/global.css";
             sendEmails && sendEmails.checked ? "true" : "false",
           );
 
-          setStatus("Generating QR batch...", "neutral");
+          setStatus(t("generating"), "neutral");
 
           const response = await fetch(`${API_BASE}/api/generate`, {
             method: "POST",
@@ -420,32 +699,30 @@ import "../styles/global.css";
           const payload = await response.json();
 
           if (!response.ok) {
-            setStatus(payload.error ?? "Generation failed.", "error");
+            setStatus(payload.error ?? t("generationFailed"), "error");
             return;
           }
 
           renderResults(payload);
-          setStatus("Batch completed.", "ok");
+          setStatus(t("batchCompleted"), "ok");
         };
 
         const loadDemoCsv = async () => {
-          setStatus("Loading demo CSV...", "neutral");
+          setStatus(t("loadingDemo"), "neutral");
 
           try {
             const response = await fetch("/example.csv");
             if (!response.ok) {
-              throw new Error("Demo CSV not found in public assets.");
+              throw new Error(t("demoMissing"));
             }
 
             const blob = await response.blob();
             const file = new File([blob], "example.csv", { type: "text/csv" });
             setSelectedFile(file);
-            setStatus("Demo CSV loaded. Click Analyze columns.", "ok");
+            setStatus(t("demoLoaded"), "ok");
           } catch (error) {
             const message =
-              error instanceof Error
-                ? error.message
-                : "Failed to load demo file.";
+              error instanceof Error ? error.message : t("demoLoadFailed");
             setStatus(message, "error");
           }
         };
@@ -459,7 +736,7 @@ import "../styles/global.css";
             const file = fileInput.files?.[0] ?? null;
             setSelectedFile(file);
             if (file) {
-              setStatus("File selected. Click Analyze columns.", "ok");
+              setStatus(t("fileSelected"), "ok");
             }
           });
         }
@@ -472,7 +749,7 @@ import "../styles/global.css";
           parseButton.addEventListener("click", () => {
             parseColumns().catch((error) => {
               const message =
-                error instanceof Error ? error.message : "Parse failed.";
+                error instanceof Error ? error.message : t("parseCatchFailed");
               setStatus(message, "error");
             });
           });
@@ -482,9 +759,16 @@ import "../styles/global.css";
           mappingForm.addEventListener("submit", (event) => {
             generateBatch(event).catch((error) => {
               const message =
-                error instanceof Error ? error.message : "Generation failed.";
+                error instanceof Error ? error.message : t("generationFailed");
               setStatus(message, "error");
             });
+          });
+        }
+
+        if (langToggle) {
+          langToggle.addEventListener("click", () => {
+            state.language = state.language === "es" ? "en" : "es";
+            applyLanguage();
           });
         }
 
@@ -517,7 +801,7 @@ import "../styles/global.css";
             if (!file) return;
 
             setSelectedFile(file);
-            setStatus("File dropped. Click Analyze columns.", "ok");
+            setStatus(t("fileDropped"), "ok");
           });
 
           dropzone.addEventListener("click", () => {
@@ -531,6 +815,8 @@ import "../styles/global.css";
             }
           });
         }
+
+        applyLanguage();
       })();
     </script>
   </body>
