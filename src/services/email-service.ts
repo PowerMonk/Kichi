@@ -1,5 +1,9 @@
 import nodemailer from "nodemailer";
 
+/**
+ * Input structure for dispatching a single email with QR attachment.
+ * Contains attendee name, email, control number, and path to QR image file.
+ */
 export interface EmailDispatchEntry {
   name: string;
   email: string;
@@ -7,12 +11,22 @@ export interface EmailDispatchEntry {
   qrFilePath: string;
 }
 
+/**
+ * Result of dispatching a batch of emails.
+ * Tracks how many succeeded, failed, and whether SMTP is configured.
+ */
 export interface EmailDispatchResult {
-  enabled: boolean;
-  sentCount: number;
-  failed: Array<{ email: string; reason: string }>;
+  enabled: boolean; // Whether SMTP is configured and available
+  sentCount: number; // Number of emails successfully sent
+  failed: Array<{ email: string; reason: string }>; // Failed deliveries with reasons
 }
 
+/**
+ * Reads SMTP configuration from environment variables.
+ * Returns null if required environment variables are missing.
+ * Required: SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_FROM
+ * Optional: SMTP_PORT (defaults to 587), SMTP_SECURE (defaults to false)
+ */
 function getSmtpConfig() {
   const host = process.env.SMTP_HOST?.trim();
   const port = Number(process.env.SMTP_PORT ?? "587");
@@ -21,6 +35,7 @@ function getSmtpConfig() {
   const from = process.env.SMTP_FROM?.trim();
   const secure = (process.env.SMTP_SECURE ?? "false").toLowerCase() === "true";
 
+  // Return null if any required config is missing
   if (!host || !user || !pass || !from) {
     return null;
   }
@@ -35,12 +50,25 @@ function getSmtpConfig() {
   };
 }
 
+/**
+ * Sends emails sequentially (one at a time) with QR code attachments.
+ * Processes each email individually to avoid rate-limiting and ensure reliability.
+ * Catches errors per email so one failure doesn't stop the rest.
+ * Returns summary of sent and failed emails.
+ *
+ * Why sequential?
+ * - Prevents SMTP rate-limit issues
+ * - Easier to debug individual failures
+ * - Predictable behavior in real-world event environments
+ */
 export async function sendSequentialEmails(
   entries: EmailDispatchEntry[],
   logFn: (eventName: string, details?: Record<string, unknown>) => void,
 ): Promise<EmailDispatchResult> {
+  // Get SMTP configuration from environment variables
   const smtp = getSmtpConfig();
 
+  // If SMTP is not configured, return disabled status
   if (!smtp) {
     return {
       enabled: false,
@@ -49,6 +77,7 @@ export async function sendSequentialEmails(
     };
   }
 
+  // Create email transporter with SMTP credentials
   const transporter = nodemailer.createTransport({
     host: smtp.host,
     port: smtp.port,
@@ -62,8 +91,10 @@ export async function sendSequentialEmails(
   let sentCount = 0;
   const failed: Array<{ email: string; reason: string }> = [];
 
+  // Send emails one at a time (sequential, not parallel)
   for (const entry of entries) {
     try {
+      // Send email with QR code attachment
       await transporter.sendMail({
         from: smtp.from,
         to: entry.email,
@@ -78,12 +109,14 @@ export async function sendSequentialEmails(
         ],
       });
 
+      // Increment success counter and log event
       sentCount += 1;
       logFn("Email sent", {
         email: entry.email,
         controlNumber: entry.controlNumber,
       });
     } catch (error) {
+      // Catch error for this email and continue with next
       const reason =
         error instanceof Error ? error.message : "Unknown SMTP error";
       failed.push({ email: entry.email, reason });
@@ -95,6 +128,7 @@ export async function sendSequentialEmails(
     }
   }
 
+  // Return summary of results
   return {
     enabled: true,
     sentCount,

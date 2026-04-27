@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { unlink } from "node:fs/promises";
+import { unlink } from "node:fs/promises"; // unlink is used to delete files, in this case to clean up QR code files if something goes wrong during generation or persistence.
 import { writeFile } from "node:fs/promises";
 import { controlNumberExists, persistRecord } from "../lib/database";
 import { EXPORT_DIR, QR_DIR } from "../lib/constants";
@@ -11,6 +11,10 @@ import { generateQrBuffer } from "./qr-service";
 import { parseSpreadsheetFile } from "./spreadsheet-service";
 import { createZipArchive } from "./zip-service";
 
+/**
+ * Maps spreadsheet columns to the required attendee fields.
+ * User selects which spreadsheet column contains each required field.
+ */
 export interface ColumnMap {
   name: string;
   email: string;
@@ -18,17 +22,29 @@ export interface ColumnMap {
   controlNumber: string;
 }
 
+/**
+ * Input parameters for the full QR generation pipeline.
+ * Includes file, column mapping, and email preference.
+ */
 export interface PipelineInput {
   file: File;
   map: ColumnMap;
   sendEmails: boolean;
 }
 
+/**
+ * Records a failure during pipeline processing.
+ * Includes row number and reason for failure.
+ */
 export interface PipelineFailure {
   rowNumber: number;
   reason: string;
 }
 
+/**
+ * Internal representation of a successfully generated record.
+ * Contains all attendee data and paths to generated QR files.
+ */
 interface GeneratedRecord {
   uuid: string;
   name: string;
@@ -39,6 +55,11 @@ interface GeneratedRecord {
   qrFilePath: string;
 }
 
+/**
+ * Final result of the entire QR generation pipeline.
+ * Includes summary counts, file URLs, generated records, and failures.
+ * Sent back to the frontend as JSON response.
+ */
 export interface PipelineResult {
   columns: string[];
   totalRows: number;
@@ -58,7 +79,12 @@ export interface PipelineResult {
   failures: PipelineFailure[];
 }
 
+/**
+ * Validates that all required column mappings exist in the parsed spreadsheet.
+ * Throws an error if a mapped column is missing or invalid.
+ */
 function assertColumnMap(columns: string[], map: ColumnMap): void {
+  // Define required field-to-column mappings
   const requiredMappings = [
     ["name", map.name],
     ["email", map.email],
@@ -66,11 +92,14 @@ function assertColumnMap(columns: string[], map: ColumnMap): void {
     ["controlNumber", map.controlNumber],
   ] as const;
 
+  // Check each required mapping
   for (const [field, columnName] of requiredMappings) {
+    // Ensure the mapped column name is not empty
     if (!columnName || columnName.trim().length === 0) {
       throw new Error(`Column mapping is missing for ${field}.`);
     }
 
+    // Ensure the mapped column actually exists in the spreadsheet
     if (!columns.includes(columnName)) {
       throw new Error(
         `Mapped column '${columnName}' for ${field} was not found in the file.`,
@@ -79,32 +108,50 @@ function assertColumnMap(columns: string[], map: ColumnMap): void {
   }
 }
 
+/**
+ * Main QR generation pipeline orchestrator.
+ * Coordinates the entire workflow:
+ * 1. Parses uploaded spreadsheet
+ * 2. Validates column mappings
+ * 3. Processes each row: validate, generate UUID, create QR, save to DB
+ * 4. Generates ZIP archive of all QRs
+ * 5. Optionally sends emails with QR attachments
+ * 6. Returns comprehensive result with records and failures
+ */
 export async function runPipeline(
   input: PipelineInput,
 ): Promise<PipelineResult> {
+  // Parse the uploaded spreadsheet file
   const parsed = await parseSpreadsheetFile(input.file);
+
+  // Validate that all user-mapped columns exist in the spreadsheet
   assertColumnMap(parsed.columns, input.map);
 
+  // Log the import event
   logEvent("File imported", {
     fileName: parsed.fileName,
     rows: parsed.rows.length,
   });
 
-  const generated: GeneratedRecord[] = [];
-  const failures: PipelineFailure[] = [];
-  const seenControlNumbers = new Set<string>();
+  // Initialize arrays to track results
+  const generated: GeneratedRecord[] = []; // Successfully generated records
+  const failures: PipelineFailure[] = []; // Failed rows with reasons
+  const seenControlNumbers = new Set<string>(); // Track control numbers to prevent duplicates within this batch
 
+  // Process each row from the spreadsheet
   for (let index = 0; index < parsed.rows.length; index += 1) {
     const row = parsed.rows[index] ?? {};
-    const rowNumber = index + 2;
+    const rowNumber = index + 2; // Row numbers start at 2 (row 1 is header)
 
     logEvent("Row parsed", { rowNumber });
 
+    // Extract and normalize field values from the row
     const name = (row[input.map.name] ?? "").trim();
     const email = (row[input.map.email] ?? "").trim().toLowerCase();
     const role = (row[input.map.role] ?? "").trim();
     const controlNumber = (row[input.map.controlNumber] ?? "").trim();
 
+    // Validate that all required fields have values
     if (!name || !email || !role || !controlNumber) {
       failures.push({
         rowNumber,
@@ -114,6 +161,7 @@ export async function runPipeline(
       continue;
     }
 
+    // Validate email format
     if (!isValidEmailAddress(email)) {
       failures.push({
         rowNumber,
@@ -122,6 +170,7 @@ export async function runPipeline(
       continue;
     }
 
+    // Check for duplicate control numbers within this batch
     if (seenControlNumbers.has(controlNumber)) {
       failures.push({
         rowNumber,
@@ -130,6 +179,7 @@ export async function runPipeline(
       continue;
     }
 
+    // Check if control number already exists in database
     if (controlNumberExists(controlNumber)) {
       failures.push({
         rowNumber,
@@ -138,12 +188,14 @@ export async function runPipeline(
       continue;
     }
 
+    // Mark this control number as seen
     seenControlNumbers.add(controlNumber);
 
+    // Generate safe filename from control number
     const safeIdentifier = toSafeIdentifier(controlNumber);
     const qrFileName = `${safeIdentifier}.png`;
     const qrFilePath = join(QR_DIR, qrFileName);
-    const uuid = crypto.randomUUID();
+    const uuid = crypto.randomUUID(); // Generate unique identifier for this attendee
 
     logEvent("UUID generated", {
       rowNumber,
@@ -152,7 +204,10 @@ export async function runPipeline(
     });
 
     try {
+      // Generate QR code PNG image
       const qrBuffer = await generateQrBuffer(uuid);
+
+      // Save QR image to disk
       await writeFile(qrFilePath, qrBuffer);
 
       logEvent("QR generated", {
@@ -161,6 +216,7 @@ export async function runPipeline(
         filePath: qrFilePath,
       });
 
+      // Persist attendee record and QR reference to database
       persistRecord({
         uuid,
         name,
@@ -170,6 +226,7 @@ export async function runPipeline(
         qrFilePath,
       });
 
+      // Add to generated records list
       generated.push({
         uuid,
         name,
@@ -180,7 +237,10 @@ export async function runPipeline(
         qrFilePath,
       });
     } catch (error) {
+      // If anything fails, clean up the generated QR file
       await unlink(qrFilePath).catch(() => undefined);
+
+      // Record the failure
       const reason =
         error instanceof Error
           ? error.message
@@ -193,12 +253,14 @@ export async function runPipeline(
     }
   }
 
+  // Generate ZIP archive of all successfully generated QRs
   let zipUrl: string | null = null;
 
   if (generated.length > 0) {
     const zipName = makeZipFileName();
     const zipPath = join(EXPORT_DIR, zipName);
 
+    // Create ZIP with all QR files
     await createZipArchive(
       zipPath,
       generated.map((item) => ({
@@ -207,6 +269,7 @@ export async function runPipeline(
       })),
     );
 
+    // Generate download URL for the ZIP
     zipUrl = `/api/download/zip/${encodeURIComponent(zipName)}`;
     logEvent("ZIP exported", {
       filePath: zipPath,
@@ -214,10 +277,12 @@ export async function runPipeline(
     });
   }
 
+  // Send emails if requested
   let emailSentCount = 0;
   let emailFailedCount = 0;
 
   if (input.sendEmails && generated.length > 0) {
+    // Send emails sequentially to avoid SMTP rate limiting
     const emailResult = await sendSequentialEmails(
       generated.map((item) => ({
         name: item.name,
@@ -228,6 +293,7 @@ export async function runPipeline(
       logEvent,
     );
 
+    // If SMTP is not configured, add a failure note
     if (!emailResult.enabled) {
       failures.push({
         rowNumber: 0,
@@ -240,6 +306,7 @@ export async function runPipeline(
     emailFailedCount = emailResult.failed.length;
   }
 
+  // Return comprehensive result
   return {
     columns: parsed.columns,
     totalRows: parsed.rows.length,
