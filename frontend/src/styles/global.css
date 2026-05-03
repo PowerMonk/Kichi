@@ -66,6 +66,30 @@ p {
   backdrop-filter: blur(10px);
 }
 
+.header-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  padding: 0.35rem 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink);
+  transition: color 150ms ease;
+}
+
+.header-link:hover {
+  color: var(--signal);
+}
+
+.header-link.is-active {
+  color: var(--signal);
+}
+
 .surface-card {
   border: 1px solid var(--line);
   background: var(--paper);
@@ -155,13 +179,14 @@ p {
 }
 
 .dropzone {
-  min-height: 260px;
+  min-height: 360px;
   border: 2px dashed var(--line);
   background: linear-gradient(180deg, #ffffff, #fbfbfb);
   display: grid;
   place-content: center;
   text-align: center;
   cursor: pointer;
+  padding: 2rem;
   transition:
     border-color 160ms ease,
     background-color 160ms ease;
@@ -268,7 +293,7 @@ p {
   }
 
   .dropzone {
-    min-height: 220px;
+    min-height: 280px;
   }
 }
 

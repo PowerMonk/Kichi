@@ -1,0 +1,94 @@
+---
+import { copy, type Language } from "../lib/site-copy";
+
+const { lang = "es", currentPath } = Astro.props as {
+  lang?: Language;
+  currentPath?: string;
+};
+
+const navCopy = copy[lang].nav;
+const homeHref = `/?lang=${lang}`;
+const generateHref = `/generate?lang=${lang}`;
+const activePath = currentPath ?? Astro.url?.pathname ?? "/";
+const isHomeActive = activePath === "/";
+const isGenerateActive = activePath.startsWith("/generate");
+---
+
+<header class="glass-strip border-b border-(--line)">
+  <div
+    class="mx-auto flex max-w-5xl items-center justify-between gap-3 px-5 py-4"
+  >
+    <a href={homeHref} class="text-2xl font-semibold tracking-tight">Kichi</a>
+    <nav class="flex items-center gap-2 sm:gap-3">
+      <a
+        id="nav-home"
+        class={`header-link${isHomeActive ? " is-active" : ""}`}
+        href={homeHref}
+        aria-current={isHomeActive ? "page" : undefined}
+      >
+        {navCopy.home}
+      </a>
+      <a
+        id="nav-generate"
+        class={`header-link${isGenerateActive ? " is-active" : ""}`}
+        href={generateHref}
+        aria-current={isGenerateActive ? "page" : undefined}
+      >
+        {navCopy.generate}
+      </a>
+      <button
+        id="lang-toggle"
+        type="button"
+        class="btn-secondary px-3! py-2! text-[0.68rem]"
+        data-target-language={lang === "es" ? "en" : "es"}
+      >
+        {navCopy.language}
+      </button>
+    </nav>
+  </div>
+</header>
+
+<script is:inline define:vars={{ copy }}>
+  (() => {
+    const button = document.getElementById("lang-toggle");
+    const homeLink = document.getElementById("nav-home");
+    const generateLink = document.getElementById("nav-generate");
+
+    if (!button || !homeLink || !generateLink) return;
+
+    const getLanguage = () => {
+      const param = new URLSearchParams(window.location.search).get("lang");
+      return param === "en" ? "en" : "es";
+    };
+
+    const applyLanguage = (language) => {
+      const nav = copy[language].nav;
+      homeLink.textContent = nav.home;
+      generateLink.textContent = nav.generate;
+      button.textContent = nav.language;
+
+      homeLink.setAttribute("href", `/?lang=${language}`);
+      generateLink.setAttribute("href", `/generate?lang=${language}`);
+      button.setAttribute(
+        "data-target-language",
+        language === "es" ? "en" : "es",
+      );
+    };
+
+    applyLanguage(getLanguage());
+
+    button.addEventListener("click", () => {
+      const targetLanguage =
+        button.getAttribute("data-target-language") ?? "es";
+      const url = new URL(window.location.href);
+      url.searchParams.set("lang", targetLanguage);
+      window.history.replaceState({}, "", url);
+      applyLanguage(targetLanguage);
+      window.dispatchEvent(
+        new CustomEvent("language-change", {
+          detail: { lang: targetLanguage },
+        }),
+      );
+    });
+  })();
+</script>
