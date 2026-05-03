@@ -1,7 +1,8 @@
 import { join } from "node:path";
+import { existsSync } from "node:fs";
 import { unlink } from "node:fs/promises"; // unlink is used to delete files, in this case to clean up QR code files if something goes wrong during generation or persistence.
 import { writeFile } from "node:fs/promises";
-import { controlNumberExists, persistRecord } from "../lib/database";
+import { persistRecord } from "../lib/database";
 import { EXPORT_DIR, QR_DIR } from "../lib/constants";
 import { makeZipFileName, toSafeIdentifier } from "../lib/filesystem";
 import { logEvent } from "../lib/logger";
@@ -136,7 +137,7 @@ export async function runPipeline(
   // Initialize arrays to track results
   const generated: GeneratedRecord[] = []; // Successfully generated records
   const failures: PipelineFailure[] = []; // Failed rows with reasons
-  const seenControlNumbers = new Set<string>(); // Track control numbers to prevent duplicates within this batch
+  const seenFileNames = new Set<string>(); // Track file names to prevent collisions within this batch
 
   // Process each row from the spreadsheet
   for (let index = 0; index < parsed.rows.length; index += 1) {
@@ -170,30 +171,21 @@ export async function runPipeline(
       continue;
     }
 
-    // Check for duplicate control numbers within this batch
-    if (seenControlNumbers.has(controlNumber)) {
-      failures.push({
-        rowNumber,
-        reason: `Duplicate control number in file: ${controlNumber}`,
-      });
-      continue;
-    }
-
-    // Check if control number already exists in database
-    if (controlNumberExists(controlNumber)) {
-      failures.push({
-        rowNumber,
-        reason: `Control number already exists in database: ${controlNumber}`,
-      });
-      continue;
-    }
-
-    // Mark this control number as seen
-    seenControlNumbers.add(controlNumber);
-
     // Generate safe filename from control number
     const safeIdentifier = toSafeIdentifier(controlNumber);
-    const qrFileName = `${safeIdentifier}.png`;
+    let qrFileName = `${safeIdentifier}.png`;
+    let duplicateIndex = 1;
+
+    // Ensure the file name is unique to avoid overwriting existing QR files
+    while (
+      seenFileNames.has(qrFileName) ||
+      existsSync(join(QR_DIR, qrFileName))
+    ) {
+      duplicateIndex += 1;
+      qrFileName = `${safeIdentifier}-${duplicateIndex}.png`;
+    }
+
+    seenFileNames.add(qrFileName);
     const qrFilePath = join(QR_DIR, qrFileName);
     const uuid = crypto.randomUUID(); // Generate unique identifier for this attendee
 

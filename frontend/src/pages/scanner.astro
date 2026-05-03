@@ -41,7 +41,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
             </div>
           </div>
 
-          <div
+          <!-- <div
             class="app-glass relative flex aspect-4/3 w-full max-w-2xl flex-col items-center justify-center rounded border border-(--line) p-2"
           >
             <div
@@ -90,7 +90,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
             >
               {scannerCopy.readySubtitle}
             </p>
-          </div>
+          </div> -->
 
           <div
             class="app-glass w-full max-w-2xl rounded border border-(--signal) bg-white/70 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
@@ -125,7 +125,8 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
               <div
                 class="mono rounded border border-(--line) bg-(--paper-strong) px-3 py-1 text-xs text-(--muted)"
               >
-                ID: #KCH-8829-A
+                <span id="scanner-uuid-label">{scannerCopy.uuidLabel}</span>:
+                <span id="scanner-value-uuid">#KCH-8829-A</span>
               </div>
             </div>
 
@@ -134,7 +135,10 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
                 <p id="scanner-field-name" class="app-label mb-1">
                   {scannerCopy.fieldName}
                 </p>
-                <p class="text-base font-semibold text-(--ink)">
+                <p
+                  id="scanner-value-name"
+                  class="text-base font-semibold text-(--ink)"
+                >
                   {scannerCopy.sampleName}
                 </p>
               </div>
@@ -143,6 +147,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
                   {scannerCopy.fieldRole}
                 </p>
                 <span
+                  id="scanner-value-role"
                   class="inline-block rounded bg-(--ink) px-2 py-1 text-xs text-white"
                 >
                   {scannerCopy.sampleRole}
@@ -152,7 +157,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
                 <p id="scanner-field-company" class="app-label mb-1">
                   {scannerCopy.fieldCompany}
                 </p>
-                <p class="text-base text-(--ink)">
+                <p id="scanner-value-company" class="text-base text-(--ink)">
                   {scannerCopy.sampleCompany}
                 </p>
               </div>
@@ -161,6 +166,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
                   {scannerCopy.fieldControl}
                 </p>
                 <p
+                  id="scanner-value-control"
                   class="mono inline-block rounded border border-(--line) bg-(--paper-strong) px-2 py-1 text-xs text-(--ink)"
                 >
                   {scannerCopy.sampleControl}
@@ -188,12 +194,11 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
               <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
             </svg>
           </div>
-          <div class="space-y-2 p-2">
-            <div class="rounded border border-(--line) bg-white/80 p-3">
-              <div class="mb-2 flex items-start justify-between">
-                <span class="mono text-xs text-(--muted)">#KCH-8829-A</span>
-                <span class="mono text-xs text-(--muted)">10:42:15</span>
-              </div>
+          <div id="scanner-activity-list" class="space-y-2 p-2">
+            <div
+              class="rounded border border-(--line) bg-white/80 p-3 space-y-2"
+            >
+              <div class="mono text-xs text-(--muted)">#KCH-8829-A</div>
               <div class="flex items-center gap-2">
                 <svg
                   class="app-icon text-(--signal)"
@@ -203,16 +208,16 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
                   <path d="M9 12l2 2l4-4"></path>
                   <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
                 </svg>
-                <span class="text-sm text-(--ink)"
-                  >{scannerCopy.sampleName}</span
-                >
+                <span class="text-sm text-(--ink)">
+                  {scannerCopy.sampleName}
+                </span>
               </div>
+              <div class="mono text-xs text-(--muted)">10:42:15</div>
             </div>
-            <div class="rounded border border-(--line) bg-white/80 p-3">
-              <div class="mb-2 flex items-start justify-between">
-                <span class="mono text-xs text-(--muted)">#KCH-7104-B</span>
-                <span class="mono text-xs text-(--muted)">10:41:02</span>
-              </div>
+            <div
+              class="rounded border border-(--line) bg-white/80 p-3 space-y-2"
+            >
+              <div class="mono text-xs text-(--muted)">#KCH-7104-B</div>
               <div class="flex items-center gap-2">
                 <svg
                   class="app-icon text-(--signal)"
@@ -224,12 +229,12 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
                 </svg>
                 <span class="text-sm text-(--ink)">Ana Silva</span>
               </div>
+              <div class="mono text-xs text-(--muted)">10:41:02</div>
             </div>
-            <div class="rounded border border-(--line) bg-white/80 p-3">
-              <div class="mb-2 flex items-start justify-between">
-                <span class="mono text-xs text-(--muted)">#KCH-3391-C</span>
-                <span class="mono text-xs text-(--muted)">10:38:45</span>
-              </div>
+            <div
+              class="rounded border border-(--line) bg-white/80 p-3 space-y-2"
+            >
+              <div class="mono text-xs text-(--muted)">#KCH-3391-C</div>
               <div class="flex items-center gap-2">
                 <svg
                   class="app-icon text-(--signal)"
@@ -241,16 +246,16 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
                 </svg>
                 <span class="text-sm text-(--ink)">Luis Robles</span>
               </div>
+              <div class="mono text-xs text-(--muted)">10:38:45</div>
             </div>
-            <div class="rounded border border-[#fecaca] bg-[#fef2f2] p-3">
-              <div class="mb-2 flex items-start justify-between">
-                <span
-                  id="scanner-activity-unknown"
-                  class="mono text-xs font-semibold text-[#991b1b]"
-                >
-                  {scannerCopy.activityUnknown}
-                </span>
-                <span class="mono text-xs text-(--muted)">10:35:10</span>
+            <div
+              class="rounded border border-[#fecaca] bg-[#fef2f2] p-3 space-y-2"
+            >
+              <div
+                id="scanner-activity-unknown"
+                class="mono text-xs font-semibold text-[#991b1b]"
+              >
+                {scannerCopy.activityUnknown}
               </div>
               <div class="flex items-center gap-2">
                 <svg
@@ -269,12 +274,12 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
                   {scannerCopy.activityInvalid}
                 </span>
               </div>
+              <div class="mono text-xs text-(--muted)">10:35:10</div>
             </div>
-            <div class="rounded border border-(--line) bg-white/80 p-3">
-              <div class="mb-2 flex items-start justify-between">
-                <span class="mono text-xs text-(--muted)">#KCH-9921-A</span>
-                <span class="mono text-xs text-(--muted)">10:30:05</span>
-              </div>
+            <div
+              class="rounded border border-(--line) bg-white/80 p-3 space-y-2"
+            >
+              <div class="mono text-xs text-(--muted)">#KCH-9921-A</div>
               <div class="flex items-center gap-2">
                 <svg
                   class="app-icon text-(--signal)"
@@ -286,6 +291,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
                 </svg>
                 <span class="text-sm text-(--ink)">Maria Fernanda</span>
               </div>
+              <div class="mono text-xs text-(--muted)">10:30:05</div>
             </div>
           </div>
           <div
@@ -303,6 +309,8 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
     </AppShell>
     <script is:inline define:vars={{ copy }}>
       (() => {
+        const API_BASE =
+          window.location.port === "4321" ? "http://localhost:3001" : "";
         const getLanguage = () => {
           const param = new URLSearchParams(window.location.search).get("lang");
           return param === "en" ? "en" : "es";
@@ -323,6 +331,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
           setText("scanner-ready-subtitle", scanner.readySubtitle);
           setText("scanner-latest-status", scanner.latestStatus);
           setText("scanner-latest-title", scanner.latestTitle);
+          setText("scanner-uuid-label", scanner.uuidLabel);
           setText("scanner-field-name", scanner.fieldName);
           setText("scanner-field-role", scanner.fieldRole);
           setText("scanner-field-company", scanner.fieldCompany);
@@ -340,6 +349,250 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
           if (!detail?.lang) return;
           applyLanguage(detail.lang);
         });
+
+        const latestStatus = document.getElementById("scanner-latest-status");
+        const latestTitle = document.getElementById("scanner-latest-title");
+        const latestUuid = document.getElementById("scanner-value-uuid");
+        const valueName = document.getElementById("scanner-value-name");
+        const valueRole = document.getElementById("scanner-value-role");
+        const valueCompany = document.getElementById("scanner-value-company");
+        const valueControl = document.getElementById("scanner-value-control");
+        const activityList = document.getElementById("scanner-activity-list");
+
+        let activityInitialized = false;
+        let buffer = "";
+        let lastInputAt = 0;
+        let clearTimer = null;
+
+        const formatTime = (iso) => {
+          const date = new Date(iso);
+          return date.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          });
+        };
+
+        const setLatestStatus = (text, tone) => {
+          if (!latestStatus) return;
+          latestStatus.textContent = text;
+          latestStatus.classList.remove("text-(--signal)", "text-[#991b1b]");
+          latestStatus.classList.add(
+            tone === "error" ? "text-[#991b1b]" : "text-(--signal)",
+          );
+        };
+
+        const updateLatest = (record, scannedAt, isFound) => {
+          const scanner = copy[getLanguage()].scanner;
+          if (latestTitle) latestTitle.textContent = scanner.latestTitle;
+          if (latestUuid) latestUuid.textContent = record.uuid;
+
+          if (isFound) {
+            if (valueName) valueName.textContent = record.name;
+            if (valueRole) valueRole.textContent = record.role;
+            if (valueCompany) valueCompany.textContent = record.company;
+            if (valueControl) valueControl.textContent = record.controlNumber;
+            setLatestStatus(scanner.latestStatus, "ok");
+          } else {
+            if (valueName) valueName.textContent = scanner.activityUnknown;
+            if (valueRole) valueRole.textContent = "-";
+            if (valueCompany) valueCompany.textContent = "-";
+            if (valueControl) valueControl.textContent = "-";
+            setLatestStatus(scanner.activityInvalid, "error");
+          }
+        };
+
+        const addActivityItem = ({ uuid, name, scannedAt, isFound }) => {
+          if (!activityList) return;
+
+          if (!activityInitialized) {
+            activityList.innerHTML = "";
+            activityInitialized = true;
+          }
+
+          const wrapper = document.createElement("div");
+          wrapper.className = isFound
+            ? "rounded border border-(--line) bg-white/80 p-3 space-y-2"
+            : "rounded border border-[#fecaca] bg-[#fef2f2] p-3 space-y-2";
+
+          const uuidRow = document.createElement("div");
+          uuidRow.className = `mono text-xs ${
+            isFound ? "text-(--muted)" : "font-semibold text-[#991b1b]"
+          }`;
+          uuidRow.textContent = uuid;
+
+          const body = document.createElement("div");
+          body.className = "flex items-center gap-2";
+
+          const icon = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "svg",
+          );
+          icon.setAttribute("viewBox", "0 0 24 24");
+          icon.setAttribute("aria-hidden", "true");
+          icon.classList.add(
+            "app-icon",
+            isFound ? "text-(--signal)" : "text-[#991b1b]",
+          );
+
+          const iconPath = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "path",
+          );
+          iconPath.setAttribute("d", "M9 12l2 2l4-4");
+          icon.appendChild(iconPath);
+
+          const iconCircle = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "path",
+          );
+          iconCircle.setAttribute(
+            "d",
+            "M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z",
+          );
+          icon.appendChild(iconCircle);
+
+          const nameSpan = document.createElement("span");
+          nameSpan.className = isFound
+            ? "text-sm text-(--ink)"
+            : "text-sm text-[#991b1b]";
+          nameSpan.textContent = name;
+
+          body.append(icon, nameSpan);
+
+          const timeRow = document.createElement("div");
+          timeRow.className = "mono text-xs text-(--muted)";
+          timeRow.textContent = formatTime(scannedAt);
+
+          wrapper.append(uuidRow, body, timeRow);
+          activityList.prepend(wrapper);
+        };
+
+        const handleScan = async (uuid) => {
+          const cleaned = uuid.trim();
+          if (!cleaned) return;
+
+          try {
+            const response = await fetch(`${API_BASE}/api/scan`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ uuid: cleaned }),
+            });
+
+            const payload = await response.json();
+
+            if (!response.ok) {
+              throw new Error(payload.error ?? "Scan failed");
+            }
+
+            const scannedAt = payload.scannedAt ?? new Date().toISOString();
+            if (payload.found && payload.attendee) {
+              updateLatest(
+                {
+                  uuid: payload.attendee.uuid,
+                  name: payload.attendee.name,
+                  role: payload.attendee.role,
+                  company: payload.attendee.email,
+                  controlNumber: payload.attendee.controlNumber,
+                },
+                scannedAt,
+                true,
+              );
+              addActivityItem({
+                uuid: payload.attendee.uuid,
+                name: payload.attendee.name,
+                scannedAt,
+                isFound: true,
+              });
+            } else {
+              const scanner = copy[getLanguage()].scanner;
+              updateLatest(
+                {
+                  uuid: cleaned,
+                  name: scanner.activityUnknown,
+                  role: "-",
+                  company: "-",
+                  controlNumber: "-",
+                },
+                scannedAt,
+                false,
+              );
+              addActivityItem({
+                uuid: cleaned,
+                name: scanner.activityUnknown,
+                scannedAt,
+                isFound: false,
+              });
+            }
+          } catch (error) {
+            const scanner = copy[getLanguage()].scanner;
+            const scannedAt = new Date().toISOString();
+            updateLatest(
+              {
+                uuid: cleaned,
+                name: scanner.activityUnknown,
+                role: "-",
+                company: "-",
+                controlNumber: "-",
+              },
+              scannedAt,
+              false,
+            );
+            addActivityItem({
+              uuid: cleaned,
+              name: scanner.activityUnknown,
+              scannedAt,
+              isFound: false,
+            });
+          }
+        };
+
+        const handleKeydown = (event) => {
+          const target = event.target;
+          if (
+            target &&
+            (target instanceof HTMLInputElement ||
+              target instanceof HTMLTextAreaElement)
+          ) {
+            return;
+          }
+
+          if (event.key === "Enter") {
+            if (buffer.length > 0) {
+              const scanValue = buffer;
+              buffer = "";
+              handleScan(scanValue);
+            }
+            return;
+          }
+
+          if (
+            event.key.length !== 1 ||
+            event.ctrlKey ||
+            event.metaKey ||
+            event.altKey
+          ) {
+            return;
+          }
+
+          const now = Date.now();
+          if (now - lastInputAt > 500) {
+            buffer = "";
+          }
+
+          buffer += event.key;
+          lastInputAt = now;
+
+          if (clearTimer) {
+            window.clearTimeout(clearTimer);
+          }
+
+          clearTimer = window.setTimeout(() => {
+            buffer = "";
+          }, 600);
+        };
+
+        window.addEventListener("keydown", handleKeydown);
       })();
     </script>
   </body>

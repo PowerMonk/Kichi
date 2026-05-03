@@ -20,6 +20,23 @@ export interface PersistRecordInput {
   qrFilePath: string;
 }
 
+export interface AttendeeRecord {
+  uuid: string;
+  name: string;
+  email: string;
+  role: string;
+  controlNumber: string;
+}
+
+interface IndexInfoRow {
+  name: string;
+  unique: number;
+}
+
+interface IndexColumnRow {
+  name: string;
+}
+
 /**
  * Gets or initializes the SQLite database singleton.
  * Creates the database file at DB_PATH if it doesn't exist.
@@ -37,18 +54,18 @@ export function getDatabase(): Database {
 
   // Enable WAL mode for better concurrency and reliability
   // WAL allows readers and writers to coexist without blocking each other
-  database.exec("PRAGMA journal_mode = WAL;");
+  database.run("PRAGMA journal_mode = WAL;");
 
   // Create attendees table if it doesn't exist
   // Stores core attendee information and UUID mapping
-  database.exec(`
+  database.run(`
     CREATE TABLE IF NOT EXISTS attendees (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       uuid TEXT UNIQUE NOT NULL,
       name TEXT NOT NULL,
       email TEXT NOT NULL,
       role TEXT NOT NULL,
-      control_number TEXT UNIQUE NOT NULL,
+      control_number TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -62,7 +79,48 @@ export function getDatabase(): Database {
     );
   `);
 
+  ensureControlNumberNotUnique(database);
+
   return database;
+}
+
+function ensureControlNumberNotUnique(db: Database): void {
+  const indexes = db
+    .query("PRAGMA index_list(attendees)")
+    .all() as IndexInfoRow[];
+
+  const hasUniqueControlNumber = indexes.some((index) => {
+    if (!index.unique) return false;
+    const safeIndexName = index.name.replace(/'/g, "''");
+    const columns = db
+      .query(`PRAGMA index_info('${safeIndexName}')`)
+      .all() as IndexColumnRow[];
+    return columns.some((column) => column.name === "control_number");
+  });
+
+  if (!hasUniqueControlNumber) return;
+
+  db.run("PRAGMA foreign_keys = OFF;");
+  db.run("BEGIN;");
+  db.run(`
+    CREATE TABLE attendees_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      uuid TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      role TEXT NOT NULL,
+      control_number TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  db.run(`
+    INSERT INTO attendees_new (id, uuid, name, email, role, control_number, created_at)
+    SELECT id, uuid, name, email, role, control_number, created_at FROM attendees;
+  `);
+  db.run("DROP TABLE attendees;");
+  db.run("ALTER TABLE attendees_new RENAME TO attendees;");
+  db.run("COMMIT;");
+  db.run("PRAGMA foreign_keys = ON;");
 }
 
 /**
@@ -86,10 +144,40 @@ export function controlNumberExists(controlNumber: string): boolean {
 }
 
 /**
+ * Fetches a single attendee by UUID.
+ * Returns null if no matching attendee exists.
+ */
+export function getAttendeeByUuid(uuid: string): AttendeeRecord | null {
+  const db = getDatabase();
+
+  const query = db.query(
+    "SELECT uuid, name, email, role, control_number FROM attendees WHERE uuid = ? LIMIT 1",
+  );
+
+  const row = query.get(uuid) as {
+    uuid: string;
+    name: string;
+    email: string;
+    role: string;
+    control_number: string;
+  } | null;
+
+  if (!row) return null;
+
+  return {
+    uuid: row.uuid,
+    name: row.name,
+    email: row.email,
+    role: row.role,
+    controlNumber: row.control_number,
+  };
+}
+
+/**
  * Persists a complete attendee record to the database.
  * Inserts into both attendees and qr_codes tables in a single transaction.
  * Ensures both inserts succeed or both fail (atomic operation).
- * Throws if either insert fails (e.g., duplicate UUID or control number).
+ * Throws if either insert fails (e.g., duplicate UUID).
  */
 export function persistRecord(input: PersistRecordInput): void {
   const db = getDatabase();
