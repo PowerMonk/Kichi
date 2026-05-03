@@ -93,7 +93,8 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
           </div> -->
 
           <div
-            class="app-glass w-full max-w-2xl rounded border border-(--signal) bg-white/70 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+            id="scanner-latest-card"
+            class="app-glass w-full max-w-2xl rounded border border-(--line) bg-white/70 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
           >
             <div
               class="mb-4 flex items-start justify-between border-b border-(--line) pb-4"
@@ -101,6 +102,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
               <div>
                 <div class="mb-1 flex items-center gap-2">
                   <svg
+                    id="scanner-latest-icon"
                     class="app-icon text-(--signal)"
                     viewBox="0 0 24 24"
                     aria-hidden="true"
@@ -201,7 +203,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
               <div class="mono text-xs text-(--muted)">#KCH-8829-A</div>
               <div class="flex items-center gap-2">
                 <svg
-                  class="app-icon text-(--signal)"
+                  class="app-icon text-[#16a34a]"
                   viewBox="0 0 24 24"
                   aria-hidden="true"
                 >
@@ -220,7 +222,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
               <div class="mono text-xs text-(--muted)">#KCH-7104-B</div>
               <div class="flex items-center gap-2">
                 <svg
-                  class="app-icon text-(--signal)"
+                  class="app-icon text-[#16a34a]"
                   viewBox="0 0 24 24"
                   aria-hidden="true"
                 >
@@ -237,7 +239,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
               <div class="mono text-xs text-(--muted)">#KCH-3391-C</div>
               <div class="flex items-center gap-2">
                 <svg
-                  class="app-icon text-(--signal)"
+                  class="app-icon text-[#16a34a]"
                   viewBox="0 0 24 24"
                   aria-hidden="true"
                 >
@@ -282,7 +284,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
               <div class="mono text-xs text-(--muted)">#KCH-9921-A</div>
               <div class="flex items-center gap-2">
                 <svg
-                  class="app-icon text-(--signal)"
+                  class="app-icon text-[#16a34a]"
                   viewBox="0 0 24 24"
                   aria-hidden="true"
                 >
@@ -316,6 +318,18 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
           return param === "en" ? "en" : "es";
         };
 
+        let showAllActivity = false;
+        const maxActivityItems = 10;
+
+        const updateActivityActionLabel = () => {
+          const scanner = copy[getLanguage()].scanner;
+          const action = document.getElementById("scanner-activity-action");
+          if (!action) return;
+          action.textContent = showAllActivity
+            ? scanner.activityActionLess
+            : scanner.activityAction;
+        };
+
         const applyLanguage = (language) => {
           const scanner = copy[language].scanner;
           document.documentElement.lang = language;
@@ -340,6 +354,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
           setText("scanner-activity-action", scanner.activityAction);
           setText("scanner-activity-unknown", scanner.activityUnknown);
           setText("scanner-activity-invalid", scanner.activityInvalid);
+          updateActivityActionLabel();
         };
 
         applyLanguage(getLanguage());
@@ -353,6 +368,8 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
         const latestStatus = document.getElementById("scanner-latest-status");
         const latestTitle = document.getElementById("scanner-latest-title");
         const latestUuid = document.getElementById("scanner-value-uuid");
+        const latestCard = document.getElementById("scanner-latest-card");
+        const latestIcon = document.getElementById("scanner-latest-icon");
         const valueName = document.getElementById("scanner-value-name");
         const valueRole = document.getElementById("scanner-value-role");
         const valueCompany = document.getElementById("scanner-value-company");
@@ -382,10 +399,39 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
           );
         };
 
+        const setLatestAccent = (isFound) => {
+          if (latestCard) {
+            latestCard.classList.remove("border-[#16a34a]");
+            if (isFound) {
+              latestCard.classList.add("border-[#16a34a]");
+            }
+          }
+
+          if (latestIcon) {
+            latestIcon.classList.remove(
+              "text-(--signal)",
+              "text-[#991b1b]",
+              "text-[#16a34a]",
+            );
+            latestIcon.classList.add("text-[#16a34a]");
+          }
+        };
+
+        const updateActivityVisibility = () => {
+          if (!activityList) return;
+          const items = Array.from(activityList.children);
+          items.forEach((item, index) => {
+            const isVisible = showAllActivity || index < maxActivityItems;
+            item.style.display = isVisible ? "" : "none";
+          });
+          updateActivityActionLabel();
+        };
+
         const updateLatest = (record, scannedAt, isFound) => {
           const scanner = copy[getLanguage()].scanner;
           if (latestTitle) latestTitle.textContent = scanner.latestTitle;
           if (latestUuid) latestUuid.textContent = record.uuid;
+          setLatestAccent(isFound);
 
           if (isFound) {
             if (valueName) valueName.textContent = record.name;
@@ -430,10 +476,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
           );
           icon.setAttribute("viewBox", "0 0 24 24");
           icon.setAttribute("aria-hidden", "true");
-          icon.classList.add(
-            "app-icon",
-            isFound ? "text-(--signal)" : "text-[#991b1b]",
-          );
+          icon.classList.add("app-icon", "text-[#16a34a]");
 
           const iconPath = document.createElementNS(
             "http://www.w3.org/2000/svg",
@@ -466,6 +509,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
 
           wrapper.append(uuidRow, body, timeRow);
           activityList.prepend(wrapper);
+          updateActivityVisibility();
         };
 
         const handleScan = async (uuid) => {
@@ -593,6 +637,18 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
         };
 
         window.addEventListener("keydown", handleKeydown);
+
+        updateActivityVisibility();
+
+        const activityAction = document.getElementById(
+          "scanner-activity-action",
+        );
+        if (activityAction) {
+          activityAction.addEventListener("click", () => {
+            showAllActivity = !showAllActivity;
+            updateActivityVisibility();
+          });
+        }
       })();
     </script>
   </body>
