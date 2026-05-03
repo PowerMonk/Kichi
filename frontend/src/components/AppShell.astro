@@ -1,0 +1,45 @@
+---
+import AppSidebar from "./AppSidebar.astro";
+import { type Language } from "../lib/site-copy";
+
+const { lang = "es", currentPath } = Astro.props as {
+  lang?: Language;
+  currentPath?: string;
+};
+---
+
+<div class="app-shell">
+  <AppSidebar lang={lang} currentPath={currentPath} />
+
+  <main class="app-main lg:ml-64">
+    <header
+      class="app-topbar glass-strip fixed left-0 top-0 z-40 w-full border-b border-(--line) px-6 py-4 lg:hidden"
+    >
+      <div class="flex items-center justify-between">
+        <span class="text-lg font-semibold tracking-tight text-(--ink)">
+          Kichi
+        </span>
+        <div class="flex items-center gap-3 text-(--signal)">
+          <button type="button" class="app-icon-button" aria-label="Settings">
+            <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 8a4 4 0 1 0 0 8a4 4 0 0 0 0-8z"></path>
+              <path
+                d="M19.4 15a1.6 1.6 0 0 0 .3 1.7l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.7-.3a1.6 1.6 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5a1.6 1.6 0 0 0-1.7.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.7a1.6 1.6 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.6 1.6 0 0 0 1.5-1a1.6 1.6 0 0 0-.3-1.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.7.3a1.6 1.6 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 1 1.5a1.6 1.6 0 0 0 1.7-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.7a1.6 1.6 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"
+              ></path>
+            </svg>
+          </button>
+          <button type="button" class="app-icon-button" aria-label="Account">
+            <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 12a4 4 0 1 0 0-8a4 4 0 0 0 0 8z"></path>
+              <path d="M4 20a8 8 0 0 1 16 0"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="app-content">
+      <slot />
+    </div>
+  </main>
+</div>

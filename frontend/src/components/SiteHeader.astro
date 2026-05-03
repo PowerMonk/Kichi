@@ -8,33 +8,28 @@ const { lang = "es", currentPath } = Astro.props as {
 
 const navCopy = copy[lang].nav;
 const homeHref = `/?lang=${lang}`;
-const generateHref = `/generate?lang=${lang}`;
+const toolkitHref = `/generate?lang=${lang}`;
 const activePath = currentPath ?? Astro.url?.pathname ?? "/";
-const isHomeActive = activePath === "/";
-const isGenerateActive = activePath.startsWith("/generate");
+const isToolkitActive = activePath !== "/";
 ---
 
 <header class="glass-strip border-b border-(--line)">
   <div
     class="mx-auto flex max-w-5xl items-center justify-between gap-3 px-5 py-4"
   >
-    <a href={homeHref} class="text-2xl font-semibold tracking-tight">Kichi</a>
+    <a
+      id="brand-link"
+      href={homeHref}
+      class="text-2xl font-semibold tracking-tight">Kichi</a
+    >
     <nav class="flex items-center gap-2 sm:gap-3">
       <a
-        id="nav-home"
-        class={`header-link${isHomeActive ? " is-active" : ""}`}
-        href={homeHref}
-        aria-current={isHomeActive ? "page" : undefined}
+        id="nav-toolkit"
+        class={`header-link${isToolkitActive ? " is-active" : ""}`}
+        href={toolkitHref}
+        aria-current={isToolkitActive ? "page" : undefined}
       >
-        {navCopy.home}
-      </a>
-      <a
-        id="nav-generate"
-        class={`header-link${isGenerateActive ? " is-active" : ""}`}
-        href={generateHref}
-        aria-current={isGenerateActive ? "page" : undefined}
-      >
-        {navCopy.generate}
+        {navCopy.toolkit}
       </a>
       <button
         id="lang-toggle"
@@ -51,10 +46,10 @@ const isGenerateActive = activePath.startsWith("/generate");
 <script is:inline define:vars={{ copy }}>
   (() => {
     const button = document.getElementById("lang-toggle");
-    const homeLink = document.getElementById("nav-home");
-    const generateLink = document.getElementById("nav-generate");
+    const brandLink = document.getElementById("brand-link");
+    const toolkitLink = document.getElementById("nav-toolkit");
 
-    if (!button || !homeLink || !generateLink) return;
+    if (!button || !toolkitLink || !brandLink) return;
 
     const getLanguage = () => {
       const param = new URLSearchParams(window.location.search).get("lang");
@@ -63,12 +58,11 @@ const isGenerateActive = activePath.startsWith("/generate");
 
     const applyLanguage = (language) => {
       const nav = copy[language].nav;
-      homeLink.textContent = nav.home;
-      generateLink.textContent = nav.generate;
+      toolkitLink.textContent = nav.toolkit;
       button.textContent = nav.language;
 
-      homeLink.setAttribute("href", `/?lang=${language}`);
-      generateLink.setAttribute("href", `/generate?lang=${language}`);
+      brandLink.setAttribute("href", `/?lang=${language}`);
+      toolkitLink.setAttribute("href", `/generate?lang=${language}`);
       button.setAttribute(
         "data-target-language",
         language === "es" ? "en" : "es",

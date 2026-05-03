@@ -1,7 +1,7 @@
 ---
 import "../styles/global.css";
+import AppShell from "../components/AppShell.astro";
 import GeneratorPanel from "../components/GeneratorPanel.astro";
-import SiteHeader from "../components/SiteHeader.astro";
 import { copy, type Language } from "../lib/site-copy";
 
 const langParam = Astro.url.searchParams.get("lang");
@@ -22,15 +22,13 @@ const pageTitle = lang === "es" ? "Kichi - generar QR" : "Kichi - generate QR";
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={generatorCopy.subtitle} />
   </head>
-  <body>
-    <div class="kichi-shell min-h-screen">
-      <SiteHeader lang={lang} currentPath="/generate" />
-
-      <main class="mx-auto max-w-5xl px-5 py-10 sm:py-16">
+  <body class="app-body">
+    <AppShell lang={lang} currentPath="/generate">
+      <div class="w-full max-w-5xl">
         <section class="space-y-4">
           <h1
             id="generator-title"
-            class="max-w-4xl text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl"
+            class="text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl"
           >
             {generatorCopy.title}
           </h1>
@@ -43,8 +41,8 @@ const pageTitle = lang === "es" ? "Kichi - generar QR" : "Kichi - generate QR";
         </section>
 
         <GeneratorPanel lang={lang} />
-      </main>
-    </div>
+      </div>
+    </AppShell>
     <script is:inline define:vars={{ copy }}>
       (() => {
         const getLanguage = () => {
