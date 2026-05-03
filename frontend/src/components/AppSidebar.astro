@@ -1,0 +1,146 @@
+---
+import { copy, type Language } from "../lib/site-copy";
+
+const { lang = "es", currentPath } = Astro.props as {
+  lang?: Language;
+  currentPath?: string;
+};
+
+const sidebar = copy[lang].sidebar;
+const homeHref = `/?lang=${lang}`;
+const generateHref = `/generate?lang=${lang}`;
+const scannerHref = `/scanner?lang=${lang}`;
+const activePath = currentPath ?? Astro.url?.pathname ?? "/";
+const isHomeActive = activePath === "/";
+const isGenerateActive = activePath.startsWith("/generate");
+const isScannerActive = activePath.startsWith("/scanner");
+---
+
+<nav class="app-sidebar hidden lg:flex flex-col">
+  <div class="border-b border-(--line) px-6 py-6">
+    <h1
+      id="sidebar-title"
+      class="text-xl font-semibold tracking-tight text-(--ink)"
+    >
+      {sidebar.title}
+    </h1>
+    <p id="sidebar-subtitle" class="mt-1 text-sm text-(--muted)">
+      {sidebar.subtitle}
+    </p>
+  </div>
+
+  <ul class="flex-1 space-y-2 px-4 py-6">
+    <li>
+      <a
+        id="sidebar-home"
+        class={`app-sidebar-link${isHomeActive ? " is-active" : ""}`}
+        href={homeHref}
+        aria-current={isHomeActive ? "page" : undefined}
+      >
+        <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 10.5L12 3l9 7.5"></path>
+          <path d="M5 9.5V20h5v-7h4v7h5V9.5"></path>
+        </svg>
+        <span id="sidebar-home-label">{sidebar.home}</span>
+      </a>
+    </li>
+    <li>
+      <a
+        id="sidebar-batch"
+        class={`app-sidebar-link${isGenerateActive ? " is-active" : ""}`}
+        href={generateHref}
+        aria-current={isGenerateActive ? "page" : undefined}
+      >
+        <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+          <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+          <path d="M14 14h7v7h-7z"></path>
+        </svg>
+        <span id="sidebar-batch-label">{sidebar.batch}</span>
+      </a>
+    </li>
+    <li>
+      <a
+        id="sidebar-scanner"
+        class={`app-sidebar-link${isScannerActive ? " is-active" : ""}`}
+        href={scannerHref}
+        aria-current={isScannerActive ? "page" : undefined}
+      >
+        <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7V4h3"></path>
+          <path d="M20 7V4h-3"></path>
+          <path d="M4 17v3h3"></path>
+          <path d="M20 17v3h-3"></path>
+          <path d="M7 12h10"></path>
+        </svg>
+        <span id="sidebar-scanner-label">{sidebar.scanner}</span>
+      </a>
+    </li>
+  </ul>
+
+  <div class="border-t border-(--line) px-4 py-4">
+    <div class="flex items-center gap-3 px-3 py-2 text-sm text-(--muted)">
+      <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 6h16"></path>
+        <path d="M4 12h16"></path>
+        <path d="M4 18h16"></path>
+      </svg>
+      <span id="sidebar-status">{sidebar.status}</span>
+    </div>
+  </div>
+</nav>
+
+<script is:inline define:vars={{ copy }}>
+  (() => {
+    const title = document.getElementById("sidebar-title");
+    const subtitle = document.getElementById("sidebar-subtitle");
+    const home = document.getElementById("sidebar-home");
+    const batch = document.getElementById("sidebar-batch");
+    const scanner = document.getElementById("sidebar-scanner");
+    const homeLabel = document.getElementById("sidebar-home-label");
+    const batchLabel = document.getElementById("sidebar-batch-label");
+    const scannerLabel = document.getElementById("sidebar-scanner-label");
+    const status = document.getElementById("sidebar-status");
+
+    if (
+      !title ||
+      !subtitle ||
+      !home ||
+      !batch ||
+      !scanner ||
+      !status ||
+      !homeLabel ||
+      !batchLabel ||
+      !scannerLabel
+    )
+      return;
+
+    const getLanguage = () => {
+      const param = new URLSearchParams(window.location.search).get("lang");
+      return param === "en" ? "en" : "es";
+    };
+
+    const applyLanguage = (language) => {
+      const sidebar = copy[language].sidebar;
+      title.textContent = sidebar.title;
+      subtitle.textContent = sidebar.subtitle;
+      homeLabel.textContent = sidebar.home;
+      batchLabel.textContent = sidebar.batch;
+      scannerLabel.textContent = sidebar.scanner;
+      status.textContent = sidebar.status;
+
+      home.setAttribute("href", `/?lang=${language}`);
+      batch.setAttribute("href", `/generate?lang=${language}`);
+      scanner.setAttribute("href", `/scanner?lang=${language}`);
+    };
+
+    applyLanguage(getLanguage());
+
+    window.addEventListener("language-change", (event) => {
+      const detail = event.detail;
+      if (!detail?.lang) return;
+      applyLanguage(detail.lang);
+    });
+  })();
+</script>

@@ -3,16 +3,23 @@ export type Language = "es" | "en";
 export const copy = {
   es: {
     nav: {
-      home: "Inicio",
-      generate: "Generar QR",
+      toolkit: "Toolkit",
       language: "ES",
     },
     landing: {
       heroTitle: "Ingresa una tabla de Excel, genera un lote QR",
       heroSubtitle:
         "Crea, personaliza y administra codigos QR desde tus hojas de datos.",
-      cta: "Empezar a generar",
+      cta: "Comenzar",
       trusted: "Con la confianza de profesionales en",
+    },
+    sidebar: {
+      title: "Kichi Toolkit",
+      subtitle: "Sincronizacion local",
+      home: "Home",
+      batch: "Generador de lotes",
+      scanner: "Escaner",
+      status: "Estado: Local",
     },
     generator: {
       title: "Generar lote QR",
@@ -67,19 +74,47 @@ export const copy = {
       right: "hecho para organizadores que quieren herramientas precisas",
     },
     partners: "Con la confianza de profesionales en",
+    scanner: {
+      title: "Escaner de Asistentes",
+      status: "PROCESAMIENTO LOCAL ACTIVO",
+      readyTitle: "Listo para escanear",
+      readySubtitle:
+        "Esperando entrada del escaner de hardware o camara. El procesamiento se realiza localmente sin necesidad de conexion a internet.",
+      latestStatus: "Escaneo exitoso",
+      latestTitle: "Informacion del Asistente",
+      activityTitle: "Actividad Reciente",
+      activityAction: "Ver Registro Completo",
+      activityUnknown: "-- DESCONOCIDO --",
+      activityInvalid: "Codigo invalido",
+      fieldName: "Nombre Completo",
+      fieldRole: "Rol",
+      fieldCompany: "Empresa",
+      fieldControl: "Numero de Control",
+      sampleName: "Carlos Mendoza",
+      sampleRole: "Ponente VIP",
+      sampleCompany: "TechCorp Industries",
+      sampleControl: "0x7F-8A9B",
+    },
   },
   en: {
     nav: {
-      home: "Home",
-      generate: "Generate QR",
+      toolkit: "Toolkit",
       language: "EN",
     },
     landing: {
-      heroTitle: "Spreadsheet in.\nQR batch out.",
+      heroTitle: "Spreadsheet in,\nQR batch out.",
       heroSubtitle:
         "Effortlessly create, customize, and manage QR codes from your data sheets.",
-      cta: "Start generating",
+      cta: "Start",
       trusted: "Trusted by professionals at",
+    },
+    sidebar: {
+      title: "Kichi Toolkit",
+      subtitle: "Local-first syncing",
+      home: "Home",
+      batch: "Batch Generator",
+      scanner: "Scanner",
+      status: "Status: Local",
     },
     generator: {
       title: "Generate QR batch",
@@ -134,6 +169,27 @@ export const copy = {
       right: "built for organizers who like sharp tools",
     },
     partners: "Trusted by professionals at",
+    scanner: {
+      title: "Attendee Scanner",
+      status: "LOCAL PROCESSING ACTIVE",
+      readyTitle: "Ready to scan",
+      readySubtitle:
+        "Waiting for hardware scanner or camera input. Processing happens locally without needing the internet.",
+      latestStatus: "Scan successful",
+      latestTitle: "Attendee details",
+      activityTitle: "Recent Activity",
+      activityAction: "View Full Log",
+      activityUnknown: "-- UNKNOWN --",
+      activityInvalid: "Invalid code",
+      fieldName: "Full Name",
+      fieldRole: "Role",
+      fieldCompany: "Company",
+      fieldControl: "Control Number",
+      sampleName: "Carlos Mendoza",
+      sampleRole: "VIP Speaker",
+      sampleCompany: "TechCorp Industries",
+      sampleControl: "0x7F-8A9B",
+    },
   },
 } as const;
 
