@@ -1,4 +1,5 @@
 import { EXPORT_DIR, QR_DIR } from "../lib/constants";
+import { getAttendeeByUuid } from "../lib/database";
 import { isSafeDownloadName } from "../lib/filesystem";
 import { logEvent } from "../lib/logger";
 import { ColumnMap, runPipeline } from "../services/pipeline-service";
@@ -40,6 +41,24 @@ function jsonResponse(payload: unknown, status = 200): Response {
  */
 function errorResponse(message: string, status = 400): Response {
   return jsonResponse({ error: message }, status);
+}
+
+function normalizeUuid(input: string): string | null {
+  const trimmed = input.trim().toLowerCase();
+  if (!trimmed) return null;
+
+  const directMatch = trimmed.match(
+    /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/,
+  );
+  if (directMatch) return directMatch[0];
+
+  const stripped = trimmed.replace(/[^0-9a-f]/g, "");
+  if (stripped.length !== 32) return null;
+
+  return `${stripped.slice(0, 8)}-${stripped.slice(8, 12)}-${stripped.slice(
+    12,
+    16,
+  )}-${stripped.slice(16, 20)}-${stripped.slice(20)}`;
 }
 
 /**
@@ -154,6 +173,43 @@ async function handleGenerateRequest(request: Request): Promise<Response> {
 }
 
 /**
+ * Handles POST /api/scan requests.
+ * Accepts a UUID and returns matching attendee data if found.
+ */
+async function handleScanRequest(request: Request): Promise<Response> {
+  let payload: { uuid?: string };
+
+  try {
+    payload = (await request.json()) as { uuid?: string };
+  } catch {
+    return errorResponse("Invalid JSON payload.", 400);
+  }
+
+  const rawUuid = typeof payload.uuid === "string" ? payload.uuid : "";
+  const uuid = normalizeUuid(rawUuid) ?? "";
+
+  if (!uuid) {
+    return errorResponse("Missing uuid.", 400);
+  }
+
+  const attendee = getAttendeeByUuid(uuid);
+  const scannedAt = new Date().toISOString();
+
+  logEvent("Scan lookup", {
+    uuid,
+    rawUuid,
+    found: Boolean(attendee),
+  });
+
+  return jsonResponse({
+    uuid,
+    found: Boolean(attendee),
+    scannedAt,
+    attendee,
+  });
+}
+
+/**
  * Handles GET requests to download files from the server.
  * Used for both QR images and ZIP archives.
  * baseDir determines which directory to search (EXPORT_DIR or QR_DIR).
@@ -231,6 +287,11 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     // Generate endpoint: runs full QR pipeline with column mapping
     if (request.method === "POST" && pathname === "/api/generate") {
       return await handleGenerateRequest(request);
+    }
+
+    // Scan lookup endpoint: returns attendee data by UUID
+    if (request.method === "POST" && pathname === "/api/scan") {
+      return await handleScanRequest(request);
     }
 
     // Download ZIP batch archive by filename
