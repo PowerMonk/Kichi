@@ -1,0 +1,584 @@
+---
+import { copy, type Language } from "../lib/site-copy";
+
+const { lang = "es", apiBase = "" } = Astro.props as {
+  lang?: Language;
+  apiBase?: string;
+};
+
+const text = copy[lang].generator;
+---
+
+<section class="surface-card mt-8 space-y-5 p-6 sm:p-8">
+  <div
+    id="dropzone"
+    class="dropzone"
+    tabindex="0"
+    role="button"
+    aria-label={lang === "es"
+      ? "Suelta aqui tu archivo CSV o XLSX"
+      : "Drop CSV or XLSX file here"}
+  >
+    <p
+      id="drop-title"
+      class="mono text-sm uppercase tracking-[0.22em] text-(--signal)"
+    >
+      {text.dropTitle}
+    </p>
+    <p id="drop-subtitle" class="mt-3 text-base text-(--muted)">
+      {text.dropSubtitle}
+    </p>
+    <input id="file-input" type="file" accept=".csv,.xlsx" class="hidden" />
+  </div>
+
+  <p id="selected-file" class="text-sm text-(--muted)">{text.noFile}</p>
+
+  <div class="flex flex-wrap gap-3">
+    <button id="browse-button" type="button" class="btn-primary">
+      {text.browse}
+    </button>
+    <button id="demo-button" type="button" class="btn-secondary">
+      {text.demo}
+    </button>
+    <button id="parse-button" type="button" class="btn-secondary" hidden>
+      {text.analyze}
+    </button>
+  </div>
+
+  <div id="status" class="status-panel status-panel--neutral">
+    {text.waiting}
+  </div>
+</section>
+
+<section id="mapping-section" class="surface-card mt-8 hidden p-6 sm:p-8">
+  <h2 id="mapping-title" class="text-2xl font-semibold tracking-tight">
+    {text.mappingTitle}
+  </h2>
+  <p id="mapping-subtitle" class="mt-2 text-sm text-(--muted)">
+    {text.mappingSubtitle}
+  </p>
+
+  <form id="mapping-form" class="mt-6 grid gap-4 sm:grid-cols-2">
+    <div>
+      <label id="label-name" class="field-label" for="map-name"
+        >{text.labelName}</label
+      >
+      <select id="map-name" class="field-select mono text-sm"></select>
+    </div>
+    <div>
+      <label id="label-email" class="field-label" for="map-email"
+        >{text.labelEmail}</label
+      >
+      <select id="map-email" class="field-select mono text-sm"></select>
+    </div>
+    <div>
+      <label id="label-role" class="field-label" for="map-role"
+        >{text.labelRole}</label
+      >
+      <select id="map-role" class="field-select mono text-sm"></select>
+    </div>
+    <div>
+      <label id="label-control" class="field-label" for="map-control">
+        {text.labelControl}
+      </label>
+      <select id="map-control" class="field-select mono text-sm"></select>
+    </div>
+    <label
+      class="mono mt-2 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-(--muted) sm:col-span-2"
+    >
+      <input id="send-emails" type="checkbox" />
+      <span id="send-emails-label">{text.sendEmails}</span>
+    </label>
+    <div class="sm:col-span-2 flex flex-wrap gap-3">
+      <button id="generate-button" type="submit" class="btn-primary">
+        {text.generate}
+      </button>
+      <p
+        id="send-emails-note"
+        class="mono self-center text-[0.68rem] uppercase tracking-[0.16em] text-(--muted)"
+      >
+        {text.sendEmailsNote}
+      </p>
+    </div>
+  </form>
+</section>
+
+<section id="results-section" class="surface-card mt-8 hidden p-6 sm:p-8">
+  <h2 id="results-title" class="text-2xl font-semibold tracking-tight">
+    {text.resultsTitle}
+  </h2>
+  <div class="summary-grid mt-5">
+    <article class="summary-card">
+      <p id="sum-label-rows" class="summary-label">{text.rows}</p>
+      <p id="sum-rows" class="summary-value">0</p>
+    </article>
+    <article class="summary-card">
+      <p id="sum-label-generated" class="summary-label">{text.generated}</p>
+      <p id="sum-created" class="summary-value">0</p>
+    </article>
+    <article class="summary-card">
+      <p id="sum-label-failed" class="summary-label">{text.failed}</p>
+      <p id="sum-failed" class="summary-value">0</p>
+    </article>
+    <article class="summary-card">
+      <p id="sum-label-emails" class="summary-label">{text.emailsSent}</p>
+      <p id="sum-emails" class="summary-value">0</p>
+    </article>
+  </div>
+
+  <div class="mt-5 flex flex-wrap gap-3">
+    <a id="zip-link" class="btn-primary hidden" href="#" download>{text.zip}</a>
+  </div>
+
+  <div class="mt-6">
+    <h3
+      id="generated-files-title"
+      class="mono text-xs uppercase tracking-[0.22em] text-(--muted)"
+    >
+      {text.qrList}
+    </h3>
+    <div id="qr-list" class="mt-3 grid gap-3 sm:grid-cols-2"></div>
+  </div>
+
+  <div class="mt-6">
+    <h3
+      id="failures-title"
+      class="mono text-xs uppercase tracking-[0.22em] text-(--muted)"
+    >
+      {text.failures}
+    </h3>
+    <ul id="failures-list" class="mt-3 space-y-2 text-sm text-(--muted)"></ul>
+  </div>
+</section>
+
+<script is:inline define:vars={{ apiBase, copy, initialLanguage: lang }}>
+  (() => {
+    const API_BASE =
+      apiBase ||
+      (window.location.port === "4321" ? "http://localhost:3001" : "");
+
+    const fileInput = document.getElementById("file-input");
+    const dropzone = document.getElementById("dropzone");
+    const dropTitle = document.getElementById("drop-title");
+    const dropSubtitle = document.getElementById("drop-subtitle");
+    const selectedFileLabel = document.getElementById("selected-file");
+    const statusPanel = document.getElementById("status");
+    const browseButton = document.getElementById("browse-button");
+    const demoButton = document.getElementById("demo-button");
+    const parseButton = document.getElementById("parse-button");
+    const mappingSection = document.getElementById("mapping-section");
+    const mappingTitle = document.getElementById("mapping-title");
+    const mappingSubtitle = document.getElementById("mapping-subtitle");
+    const mappingForm = document.getElementById("mapping-form");
+    const mapName = document.getElementById("map-name");
+    const mapEmail = document.getElementById("map-email");
+    const mapRole = document.getElementById("map-role");
+    const mapControl = document.getElementById("map-control");
+    const labelName = document.getElementById("label-name");
+    const labelEmail = document.getElementById("label-email");
+    const labelRole = document.getElementById("label-role");
+    const labelControl = document.getElementById("label-control");
+    const sendEmails = document.getElementById("send-emails");
+    const sendEmailsLabel = document.getElementById("send-emails-label");
+    const sendEmailsNote = document.getElementById("send-emails-note");
+    const generateButton = document.getElementById("generate-button");
+    const resultsSection = document.getElementById("results-section");
+    const resultsTitle = document.getElementById("results-title");
+    const sumLabelRows = document.getElementById("sum-label-rows");
+    const sumLabelGenerated = document.getElementById("sum-label-generated");
+    const sumLabelFailed = document.getElementById("sum-label-failed");
+    const sumLabelEmails = document.getElementById("sum-label-emails");
+    const sumRows = document.getElementById("sum-rows");
+    const sumCreated = document.getElementById("sum-created");
+    const sumFailed = document.getElementById("sum-failed");
+    const sumEmails = document.getElementById("sum-emails");
+    const zipLink = document.getElementById("zip-link");
+    const generatedFilesTitle = document.getElementById(
+      "generated-files-title",
+    );
+    const failuresTitle = document.getElementById("failures-title");
+    const qrList = document.getElementById("qr-list");
+    const failuresList = document.getElementById("failures-list");
+
+    const state = {
+      file: null,
+      columns: [],
+      language: initialLanguage === "en" ? "en" : "es",
+      lastResult: null,
+      text: copy[initialLanguage === "en" ? "en" : "es"].generator,
+    };
+
+    const t = (key, params = {}) => {
+      const template = state.text[key] ?? key;
+      return Object.entries(params).reduce(
+        (acc, [paramKey, value]) => acc.replace(`{${paramKey}}`, String(value)),
+        template,
+      );
+    };
+
+    const setStatus = (message, tone = "neutral") => {
+      if (!statusPanel) return;
+      statusPanel.textContent = message;
+      statusPanel.className = `status-panel status-panel--${tone}`;
+    };
+
+    const applyLanguage = (language) => {
+      state.language = language === "en" ? "en" : "es";
+      state.text = copy[state.language].generator;
+
+      if (dropTitle) dropTitle.textContent = state.text.dropTitle;
+      if (dropSubtitle) dropSubtitle.textContent = state.text.dropSubtitle;
+      if (browseButton) browseButton.textContent = state.text.browse;
+      if (demoButton) demoButton.textContent = state.text.demo;
+      if (parseButton) parseButton.textContent = state.text.analyze;
+      if (mappingTitle) mappingTitle.textContent = state.text.mappingTitle;
+      if (mappingSubtitle)
+        mappingSubtitle.textContent = state.text.mappingSubtitle;
+      if (labelName) labelName.textContent = state.text.labelName;
+      if (labelEmail) labelEmail.textContent = state.text.labelEmail;
+      if (labelRole) labelRole.textContent = state.text.labelRole;
+      if (labelControl) labelControl.textContent = state.text.labelControl;
+      if (sendEmailsLabel) sendEmailsLabel.textContent = state.text.sendEmails;
+      if (sendEmailsNote)
+        sendEmailsNote.textContent = state.text.sendEmailsNote;
+      if (generateButton) generateButton.textContent = state.text.generate;
+      if (resultsTitle) resultsTitle.textContent = state.text.resultsTitle;
+      if (sumLabelRows) sumLabelRows.textContent = state.text.rows;
+      if (sumLabelGenerated)
+        sumLabelGenerated.textContent = state.text.generated;
+      if (sumLabelFailed) sumLabelFailed.textContent = state.text.failed;
+      if (sumLabelEmails) sumLabelEmails.textContent = state.text.emailsSent;
+      if (zipLink) zipLink.textContent = state.text.zip;
+      if (generatedFilesTitle)
+        generatedFilesTitle.textContent = state.text.qrList;
+      if (failuresTitle) failuresTitle.textContent = state.text.failures;
+
+      if (dropzone) {
+        dropzone.setAttribute(
+          "aria-label",
+          state.language === "es"
+            ? "Suelta aqui tu archivo CSV o XLSX"
+            : "Drop CSV or XLSX file here",
+        );
+      }
+
+      if (selectedFileLabel) {
+        selectedFileLabel.textContent = state.file
+          ? t("selectedFile", {
+              name: state.file.name,
+              size: Math.max(1, Math.round(state.file.size / 1024)),
+            })
+          : state.text.noFile;
+      }
+
+      if (parseButton) {
+        parseButton.hidden = !state.file;
+      }
+
+      if (
+        statusPanel &&
+        statusPanel.classList.contains("status-panel--neutral")
+      ) {
+        statusPanel.textContent = state.text.waiting;
+      }
+
+      if (state.lastResult) {
+        renderResults(state.lastResult);
+      }
+    };
+
+    const setSelectedFile = (file) => {
+      state.file = file;
+
+      if (selectedFileLabel) {
+        selectedFileLabel.textContent = file
+          ? t("selectedFile", {
+              name: file.name,
+              size: Math.max(1, Math.round(file.size / 1024)),
+            })
+          : t("noFile");
+      }
+
+      if (mappingSection) mappingSection.classList.add("hidden");
+      if (resultsSection) resultsSection.classList.add("hidden");
+      if (parseButton) parseButton.hidden = !file;
+    };
+
+    const buildOptions = (select, columns, preferred) => {
+      if (!select) return;
+
+      select.innerHTML = "";
+      columns.forEach((column) => {
+        const option = document.createElement("option");
+        option.value = column;
+        option.textContent = column;
+        select.appendChild(option);
+      });
+
+      const normalized = columns.map((column) => column.toLowerCase());
+      const preferredIndex = preferred
+        .map((target) => normalized.indexOf(target.toLowerCase()))
+        .find((index) => index >= 0);
+
+      if (typeof preferredIndex === "number") {
+        select.selectedIndex = preferredIndex;
+      }
+    };
+
+    const parseColumns = async () => {
+      if (!state.file) {
+        setStatus(t("selectFileFirst"), "error");
+        return;
+      }
+
+      setStatus(t("analyzing"), "neutral");
+      const formData = new FormData();
+      formData.append("file", state.file);
+
+      const response = await fetch(`${API_BASE}/api/parse`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        setStatus(payload.error ?? t("parseFailed"), "error");
+        return;
+      }
+
+      state.columns = payload.columns ?? [];
+      buildOptions(mapName, state.columns, ["name", "full_name"]);
+      buildOptions(mapEmail, state.columns, ["email", "correo"]);
+      buildOptions(mapRole, state.columns, ["role", "category"]);
+      buildOptions(mapControl, state.columns, [
+        "control_number",
+        "matricula",
+        "id",
+      ]);
+
+      if (mappingSection) mappingSection.classList.remove("hidden");
+
+      setStatus(t("columnsReady", { rows: payload.rowCount }), "ok");
+    };
+
+    function renderResults(result) {
+      state.lastResult = result;
+      if (!sumRows || !sumCreated || !sumFailed || !sumEmails) return;
+
+      sumRows.textContent = String(result.totalRows ?? 0);
+      sumCreated.textContent = String(result.createdCount ?? 0);
+      sumFailed.textContent = String(result.failedCount ?? 0);
+      sumEmails.textContent = String(result.emailSentCount ?? 0);
+
+      if (zipLink) {
+        if (result.zipUrl) {
+          zipLink.classList.remove("hidden");
+          zipLink.href = `${API_BASE}${result.zipUrl}`;
+        } else {
+          zipLink.classList.add("hidden");
+          zipLink.removeAttribute("href");
+        }
+      }
+
+      if (qrList) {
+        qrList.innerHTML = "";
+        (result.records ?? []).forEach((record) => {
+          const card = document.createElement("article");
+          card.className = "qr-result-card";
+
+          const title = document.createElement("p");
+          title.className = "font-semibold";
+          title.textContent = `${record.name} · ${record.controlNumber}`;
+
+          const subtitle = document.createElement("p");
+          subtitle.className =
+            "mono text-xs uppercase tracking-[0.18em] text-(--muted)";
+          subtitle.textContent = `${record.role}`;
+
+          const link = document.createElement("a");
+          link.className = "result-link";
+          link.href = `${API_BASE}${record.qrUrl}`;
+          link.download = `${record.controlNumber}.png`;
+          link.textContent = t("downloadQr");
+
+          card.append(title, subtitle, link);
+          qrList.appendChild(card);
+        });
+      }
+
+      if (failuresList) {
+        failuresList.innerHTML = "";
+        (result.failures ?? []).forEach((failure) => {
+          const item = document.createElement("li");
+          const prefix = failure.rowNumber
+            ? `${t("rowPrefix")} ${failure.rowNumber}`
+            : t("generalPrefix");
+          item.textContent = `${prefix}: ${failure.reason}`;
+          failuresList.appendChild(item);
+        });
+
+        if (!result.failures || result.failures.length === 0) {
+          const item = document.createElement("li");
+          item.textContent = t("noFailures");
+          failuresList.appendChild(item);
+        }
+      }
+
+      if (resultsSection) resultsSection.classList.remove("hidden");
+    }
+
+    const generateBatch = async (event) => {
+      event.preventDefault();
+
+      if (!state.file) {
+        setStatus(t("selectFileFirst"), "error");
+        return;
+      }
+
+      if (!mapName || !mapEmail || !mapRole || !mapControl) {
+        setStatus(t("mappingMissing"), "error");
+        return;
+      }
+
+      const map = {
+        name: mapName.value,
+        email: mapEmail.value,
+        role: mapRole.value,
+        controlNumber: mapControl.value,
+      };
+
+      const formData = new FormData();
+      formData.append("file", state.file);
+      formData.append("map", JSON.stringify(map));
+      formData.append(
+        "sendEmails",
+        sendEmails && sendEmails.checked ? "true" : "false",
+      );
+
+      setStatus(t("generating"), "neutral");
+
+      const response = await fetch(`${API_BASE}/api/generate`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        setStatus(payload.error ?? t("generationFailed"), "error");
+        return;
+      }
+
+      renderResults(payload);
+      setStatus(t("batchCompleted"), "ok");
+    };
+
+    const loadDemoCsv = async () => {
+      setStatus(t("loadingDemo"), "neutral");
+
+      try {
+        const response = await fetch("/example.csv");
+        if (!response.ok) throw new Error(t("demoMissing"));
+
+        const blob = await response.blob();
+        const file = new File([blob], "example.csv", { type: "text/csv" });
+        setSelectedFile(file);
+        setStatus(t("demoLoaded"), "ok");
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : t("demoLoadFailed");
+        setStatus(message, "error");
+      }
+    };
+
+    if (browseButton && fileInput)
+      browseButton.addEventListener("click", () => fileInput.click());
+
+    if (fileInput) {
+      fileInput.addEventListener("change", () => {
+        const file = fileInput.files?.[0] ?? null;
+        setSelectedFile(file);
+
+        if (file) setStatus(t("fileSelected"), "ok");
+      });
+    }
+
+    if (demoButton) demoButton.addEventListener("click", loadDemoCsv);
+
+    if (parseButton) {
+      parseButton.addEventListener("click", () => {
+        parseColumns().catch((error) => {
+          const message =
+            error instanceof Error ? error.message : t("parseFailed");
+          setStatus(message, "error");
+        });
+      });
+    }
+
+    if (mappingForm) {
+      mappingForm.addEventListener("submit", (event) => {
+        generateBatch(event).catch((error) => {
+          const message =
+            error instanceof Error ? error.message : t("generationFailed");
+          setStatus(message, "error");
+        });
+      });
+    }
+
+    const getLanguage = () => {
+      const param = new URLSearchParams(window.location.search).get("lang");
+      return param === "en" ? "en" : "es";
+    };
+
+    applyLanguage(getLanguage());
+
+    window.addEventListener("language-change", (event) => {
+      const detail = event.detail;
+      if (!detail?.lang) return;
+      applyLanguage(detail.lang);
+    });
+
+    const preventDefaults = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    if (dropzone) {
+      ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+        dropzone.addEventListener(eventName, preventDefaults);
+      });
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        dropzone.addEventListener(eventName, () =>
+          dropzone.classList.add("is-dragging"),
+        );
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        dropzone.addEventListener(eventName, () =>
+          dropzone.classList.remove("is-dragging"),
+        );
+      });
+
+      dropzone.addEventListener("drop", (event) => {
+        const file = event.dataTransfer?.files?.[0] ?? null;
+        if (!file) return;
+
+        setSelectedFile(file);
+        setStatus(t("fileDropped"), "ok");
+      });
+
+      dropzone.addEventListener("click", () => {
+        if (fileInput) fileInput.click();
+      });
+
+      dropzone.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          if (fileInput) fileInput.click();
+        }
+      });
+    }
+  })();
+</script>

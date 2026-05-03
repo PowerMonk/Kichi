@@ -1,0 +1,32 @@
+---
+import { copy, type Language } from "../lib/site-copy";
+
+const { lang = "es" } = Astro.props as { lang?: Language };
+const trustedCopy = copy[lang].landing.trusted;
+---
+
+<section class="mt-14 p-8 sm:p-10">
+  <p
+    id="trusted-title"
+    class="mono text-center text-sm uppercase tracking-[0.24em] text-(--muted) sm:text-base"
+  >
+    {trustedCopy}
+  </p>
+
+  <div
+    class="mt-10 flex flex-wrap items-center justify-center gap-12 mask-[linear-gradient(to_right,transparent,black_15%,black_85%,transparent)] sm:gap-16"
+  >
+    <img
+      src="/mecat_logo.png"
+      alt="Logo MECAT"
+      class="h-14 w-auto object-contain grayscale opacity-50 mix-blend-multiply transition-all duration-300 hover:grayscale-0 hover:opacity-100 sm:h-16"
+      loading="lazy"
+    />
+    <img
+      src="/canacintra_logo.png"
+      alt="Logo CANACINTRA"
+      class="h-14 w-auto object-contain grayscale opacity-50 mix-blend-multiply transition-all duration-300 hover:grayscale-0 hover:opacity-100 sm:h-16"
+      loading="lazy"
+    />
+  </div>
+</section>

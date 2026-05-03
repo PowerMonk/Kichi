@@ -1,0 +1,75 @@
+---
+import "../styles/global.css";
+import GeneratorPanel from "../components/GeneratorPanel.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import { copy, type Language } from "../lib/site-copy";
+
+const langParam = Astro.url.searchParams.get("lang");
+const lang: Language = langParam === "en" ? "en" : "es";
+const generatorCopy = copy[lang].generator;
+const pageTitle = lang === "es" ? "Kichi - generar QR" : "Kichi - generate QR";
+---
+
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{pageTitle}</title>
+    <meta name="description" content={generatorCopy.subtitle} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={generatorCopy.subtitle} />
+  </head>
+  <body>
+    <div class="kichi-shell min-h-screen">
+      <SiteHeader lang={lang} currentPath="/generate" />
+
+      <main class="mx-auto max-w-5xl px-5 py-10 sm:py-16">
+        <section class="space-y-4">
+          <h1
+            id="generator-title"
+            class="max-w-4xl text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl"
+          >
+            {generatorCopy.title}
+          </h1>
+          <p
+            id="generator-subtitle"
+            class="max-w-2xl text-base text-(--muted) sm:text-lg"
+          >
+            {generatorCopy.subtitle}
+          </p>
+        </section>
+
+        <GeneratorPanel lang={lang} />
+      </main>
+    </div>
+    <script is:inline define:vars={{ copy }}>
+      (() => {
+        const getLanguage = () => {
+          const param = new URLSearchParams(window.location.search).get("lang");
+          return param === "en" ? "en" : "es";
+        };
+
+        const applyLanguage = (language) => {
+          const generator = copy[language].generator;
+          document.documentElement.lang = language;
+
+          const title = document.getElementById("generator-title");
+          const subtitle = document.getElementById("generator-subtitle");
+          if (title) title.textContent = generator.title;
+          if (subtitle) subtitle.textContent = generator.subtitle;
+        };
+
+        applyLanguage(getLanguage());
+
+        window.addEventListener("language-change", (event) => {
+          const detail = event.detail;
+          if (!detail?.lang) return;
+          applyLanguage(detail.lang);
+        });
+      })();
+    </script>
+  </body>
+</html>
