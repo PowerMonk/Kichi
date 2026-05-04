@@ -1,6 +1,9 @@
 ---
 import "../styles/global.css";
 import AppShell from "../components/AppShell.astro";
+import EmailLog from "../components/EmailLog.astro";
+import EmailProgressCard from "../components/EmailProgressCard.astro";
+import EmailSummaryCard from "../components/EmailSummaryCard.astro";
 import { copy, type Language } from "../lib/site-copy";
 
 const langParam = Astro.url.searchParams.get("lang");
@@ -71,266 +74,12 @@ const smtpFrom = import.meta.env.PUBLIC_SMTP_FROM ?? fallbackNotConfigured;
           class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
         >
           <div class="space-y-6">
-            <section class="app-glass rounded border border-(--line) p-6">
-              <div class="flex items-start justify-between">
-                <div>
-                  <p id="email-status-label" class="app-label">
-                    {emailCopy.statusLabel}
-                  </p>
-                  <div class="mt-2 flex items-center gap-2">
-                    <span
-                      class="h-2 w-2 rounded-full bg-(--signal) animate-pulse"
-                    >
-                    </span>
-                    <span
-                      id="email-status-value"
-                      class="mono text-xs uppercase tracking-[0.22em] text-(--ink)"
-                    >
-                      {emailCopy.statusValue}
-                    </span>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <span class="text-3xl font-semibold text-(--ink)">65%</span>
-                </div>
-              </div>
-              <div
-                class="mt-5 h-2 w-full overflow-hidden rounded-full bg-[#e6e6e6]"
-              >
-                <div class="h-full w-[65%] bg-(--signal)"></div>
-              </div>
-              <div
-                class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-(--muted)"
-              >
-                <span id="email-progress-completed">
-                  {emailCopy.progressCompleted}
-                </span>
-                <span id="email-progress-remaining">
-                  {emailCopy.progressRemaining}
-                </span>
-              </div>
-            </section>
-
-            <section
-              class="app-glass overflow-hidden rounded border border-(--line)"
-            >
-              <div
-                class="flex items-center justify-between border-b border-(--line) px-5 py-4"
-              >
-                <h3 id="email-log-title" class="app-label text-(--ink)">
-                  {emailCopy.logTitle}
-                </h3>
-                <button
-                  id="email-log-toggle"
-                  class="app-label text-(--signal)"
-                  type="button"
-                >
-                  {emailCopy.logToggleMore}
-                </button>
-              </div>
-              <div id="email-log-list" class="space-y-3 bg-white/70 px-5 py-4">
-                <div
-                  data-email-item
-                  class="flex items-start gap-3 rounded border border-(--line) bg-white/90 p-3"
-                >
-                  <svg
-                    class="app-icon text-(--signal)"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 12l2 2l4-4"></path>
-                    <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
-                  </svg>
-                  <div>
-                    <p class="text-sm text-(--ink)">
-                      Entregado: Carlos Mendoza
-                    </p>
-                    <p class="mono text-xs text-(--muted)">10:42:15 - 250 OK</p>
-                  </div>
-                </div>
-                <div
-                  data-email-item
-                  class="flex items-start gap-3 rounded border border-(--line) bg-white/90 p-3"
-                >
-                  <svg
-                    class="app-icon text-(--signal)"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 12l2 2l4-4"></path>
-                    <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
-                  </svg>
-                  <div>
-                    <p class="text-sm text-(--ink)">Entregado: Ana Silva</p>
-                    <p class="mono text-xs text-(--muted)">10:42:12 - 250 OK</p>
-                  </div>
-                </div>
-                <div
-                  data-email-item
-                  class="flex items-start gap-3 rounded border border-(--line) bg-white/90 p-3"
-                >
-                  <svg
-                    class="app-icon text-(--signal)"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 12l2 2l4-4"></path>
-                    <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
-                  </svg>
-                  <div>
-                    <p class="text-sm text-(--ink)">Entregado: Luis Robles</p>
-                    <p class="mono text-xs text-(--muted)">10:42:05 - 250 OK</p>
-                  </div>
-                </div>
-                <div
-                  data-email-item
-                  class="flex items-start gap-3 rounded border border-[#fecaca] bg-[#fef2f2] p-3"
-                >
-                  <svg
-                    class="app-icon text-[#991b1b]"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path d="M12 2a10 10 0 1 1 0 20a10 10 0 0 1 0-20z"></path>
-                    <path d="M12 7v6"></path>
-                    <path d="M12 16h.01"></path>
-                  </svg>
-                  <div>
-                    <p class="text-sm text-[#991b1b]">Error: Maria Garcia</p>
-                    <p class="mono text-xs text-(--muted)">
-                      10:42:01 - SMTP Timeout
-                    </p>
-                  </div>
-                </div>
-                <div
-                  data-email-item
-                  class="flex items-start gap-3 rounded border border-(--line) bg-white/90 p-3"
-                >
-                  <svg
-                    class="app-icon text-(--signal)"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 12l2 2l4-4"></path>
-                    <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
-                  </svg>
-                  <div>
-                    <p class="text-sm text-(--ink)">
-                      Entregado: Maria Fernanda
-                    </p>
-                    <p class="mono text-xs text-(--muted)">10:41:52 - 250 OK</p>
-                  </div>
-                </div>
-                <div
-                  data-email-item
-                  class="flex items-start gap-3 rounded border border-(--line) bg-white/90 p-3"
-                >
-                  <svg
-                    class="app-icon text-(--signal)"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 12l2 2l4-4"></path>
-                    <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
-                  </svg>
-                  <div>
-                    <p class="text-sm text-(--ink)">Entregado: Ana Maria</p>
-                    <p class="mono text-xs text-(--muted)">10:41:45 - 250 OK</p>
-                  </div>
-                </div>
-                <div
-                  data-email-item
-                  class="flex items-start gap-3 rounded border border-(--line) bg-white/90 p-3"
-                >
-                  <svg
-                    class="app-icon text-(--signal)"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 12l2 2l4-4"></path>
-                    <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
-                  </svg>
-                  <div>
-                    <p class="text-sm text-(--ink)">Entregado: Jorge Ruiz</p>
-                    <p class="mono text-xs text-(--muted)">10:41:32 - 250 OK</p>
-                  </div>
-                </div>
-                <div
-                  data-email-item
-                  class="flex items-start gap-3 rounded border border-(--line) bg-white/90 p-3"
-                >
-                  <svg
-                    class="app-icon text-(--signal)"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 12l2 2l4-4"></path>
-                    <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
-                  </svg>
-                  <div>
-                    <p class="text-sm text-(--ink)">Entregado: Sofia Vega</p>
-                    <p class="mono text-xs text-(--muted)">10:41:10 - 250 OK</p>
-                  </div>
-                </div>
-                <div
-                  data-email-item
-                  class="flex items-start gap-3 rounded border border-(--line) bg-white/90 p-3"
-                >
-                  <svg
-                    class="app-icon text-(--signal)"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 12l2 2l4-4"></path>
-                    <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
-                  </svg>
-                  <div>
-                    <p class="text-sm text-(--ink)">Entregado: Diego Perez</p>
-                    <p class="mono text-xs text-(--muted)">10:40:55 - 250 OK</p>
-                  </div>
-                </div>
-              </div>
-            </section>
+            <EmailProgressCard lang={lang} />
+            <EmailLog lang={lang} />
           </div>
 
           <aside class="space-y-6">
-            <section class="app-glass rounded border border-(--line) p-5">
-              <h3 id="email-summary-title" class="app-label text-(--ink)">
-                {emailCopy.summaryTitle}
-              </h3>
-              <div class="mt-4 space-y-3 text-sm">
-                <div
-                  class="flex items-center justify-between border-b border-(--line) pb-2"
-                >
-                  <span id="email-summary-total" class="text-(--muted)">
-                    {emailCopy.summaryTotal}
-                  </span>
-                  <span class="font-semibold text-(--ink)">250</span>
-                </div>
-                <div
-                  class="flex items-center justify-between border-b border-(--line) pb-2"
-                >
-                  <span id="email-summary-sent" class="text-(--muted)">
-                    {emailCopy.summarySent}
-                  </span>
-                  <span class="font-semibold text-(--signal)">162</span>
-                </div>
-                <div
-                  class="flex items-center justify-between border-b border-(--line) pb-2"
-                >
-                  <span id="email-summary-pending" class="text-(--muted)">
-                    {emailCopy.summaryPending}
-                  </span>
-                  <span class="font-semibold text-(--ink)">85</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span id="email-summary-failed" class="text-(--muted)">
-                    {emailCopy.summaryFailed}
-                  </span>
-                  <span class="font-semibold text-[#991b1b]">3</span>
-                </div>
-              </div>
-            </section>
+            <EmailSummaryCard lang={lang} />
 
             <section class="app-glass rounded border border-(--line) p-5">
               <h3 id="email-controls-title" class="app-label text-(--ink)">
@@ -374,6 +123,10 @@ const smtpFrom = import.meta.env.PUBLIC_SMTP_FROM ?? fallbackNotConfigured;
             ? Array.from(logList.querySelectorAll("[data-email-item]"))
             : [];
 
+          if (items.length <= maxLogItems) {
+            showAll = false;
+          }
+
           items.forEach((item, index) => {
             const isVisible = showAll || index < maxLogItems;
             item.style.display = isVisible ? "" : "none";
@@ -384,6 +137,7 @@ const smtpFrom = import.meta.env.PUBLIC_SMTP_FROM ?? fallbackNotConfigured;
             toggle.textContent = showAll
               ? emailCopy.logToggleLess
               : emailCopy.logToggleMore;
+            toggle.style.display = items.length > maxLogItems ? "" : "none";
           }
         };
 

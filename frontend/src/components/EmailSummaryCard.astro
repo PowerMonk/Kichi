@@ -1,0 +1,44 @@
+---
+import { copy, type Language } from "../lib/site-copy";
+
+const { lang = "es" } = Astro.props as { lang?: Language };
+const email = copy[lang].email;
+---
+
+<section class="app-glass rounded border border-(--line) p-5">
+  <h3 id="email-summary-title" class="app-label text-(--ink)">
+    {email.summaryTitle}
+  </h3>
+  <div class="mt-4 space-y-3 text-sm">
+    <div
+      class="flex items-center justify-between border-b border-(--line) pb-2"
+    >
+      <span id="email-summary-total" class="text-(--muted)">
+        {email.summaryTotal}
+      </span>
+      <span class="font-semibold text-(--ink)">0</span>
+    </div>
+    <div
+      class="flex items-center justify-between border-b border-(--line) pb-2"
+    >
+      <span id="email-summary-sent" class="text-(--muted)">
+        {email.summarySent}
+      </span>
+      <span class="font-semibold text-(--signal)">0</span>
+    </div>
+    <div
+      class="flex items-center justify-between border-b border-(--line) pb-2"
+    >
+      <span id="email-summary-pending" class="text-(--muted)">
+        {email.summaryPending}
+      </span>
+      <span class="font-semibold text-(--ink)">0</span>
+    </div>
+    <div class="flex items-center justify-between">
+      <span id="email-summary-failed" class="text-(--muted)">
+        {email.summaryFailed}
+      </span>
+      <span class="font-semibold text-[#991b1b]">0</span>
+    </div>
+  </div>
+</section>
