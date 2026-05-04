@@ -9,10 +9,12 @@ const { lang = "es", currentPath } = Astro.props as {
 const sidebar = copy[lang].sidebar;
 const homeHref = `/?lang=${lang}`;
 const generateHref = `/generate?lang=${lang}`;
+const emailHref = `/email?lang=${lang}`;
 const scannerHref = `/scanner?lang=${lang}`;
 const activePath = currentPath ?? Astro.url?.pathname ?? "/";
 const isHomeActive = activePath === "/";
 const isGenerateActive = activePath.startsWith("/generate");
+const isEmailActive = activePath.startsWith("/email");
 const isScannerActive = activePath.startsWith("/scanner");
 ---
 
@@ -62,6 +64,21 @@ const isScannerActive = activePath.startsWith("/scanner");
     </li>
     <li>
       <a
+        id="sidebar-email"
+        class={`app-sidebar-link${isEmailActive ? " is-active" : ""}`}
+        href={emailHref}
+        aria-current={isEmailActive ? "page" : undefined}
+      >
+        <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 6h16"></path>
+          <path d="M4 6l8 6l8-6"></path>
+          <path d="M4 6v12h16V6"></path>
+        </svg>
+        <span id="sidebar-email-label">{sidebar.email}</span>
+      </a>
+    </li>
+    <li>
+      <a
         id="sidebar-scanner"
         class={`app-sidebar-link${isScannerActive ? " is-active" : ""}`}
         href={scannerHref}
@@ -97,9 +114,11 @@ const isScannerActive = activePath.startsWith("/scanner");
     const subtitle = document.getElementById("sidebar-subtitle");
     const home = document.getElementById("sidebar-home");
     const batch = document.getElementById("sidebar-batch");
+    const email = document.getElementById("sidebar-email");
     const scanner = document.getElementById("sidebar-scanner");
     const homeLabel = document.getElementById("sidebar-home-label");
     const batchLabel = document.getElementById("sidebar-batch-label");
+    const emailLabel = document.getElementById("sidebar-email-label");
     const scannerLabel = document.getElementById("sidebar-scanner-label");
     const status = document.getElementById("sidebar-status");
 
@@ -108,10 +127,12 @@ const isScannerActive = activePath.startsWith("/scanner");
       !subtitle ||
       !home ||
       !batch ||
+      !email ||
       !scanner ||
       !status ||
       !homeLabel ||
       !batchLabel ||
+      !emailLabel ||
       !scannerLabel
     )
       return;
@@ -127,11 +148,13 @@ const isScannerActive = activePath.startsWith("/scanner");
       subtitle.textContent = sidebar.subtitle;
       homeLabel.textContent = sidebar.home;
       batchLabel.textContent = sidebar.batch;
+      emailLabel.textContent = sidebar.email;
       scannerLabel.textContent = sidebar.scanner;
       status.textContent = sidebar.status;
 
       home.setAttribute("href", `/?lang=${language}`);
       batch.setAttribute("href", `/generate?lang=${language}`);
+      email.setAttribute("href", `/email?lang=${language}`);
       scanner.setAttribute("href", `/scanner?lang=${language}`);
     };
 
