@@ -28,11 +28,11 @@ export interface EmailDispatchResult {
  * Optional: SMTP_PORT (defaults to 587), SMTP_SECURE (defaults to false)
  */
 function getSmtpConfig() {
-  const host = process.env.SMTP_HOST?.trim();
+  const host = process.env.SMTP_HOST!.trim(); // env must be available
   const port = Number(process.env.SMTP_PORT ?? "587");
-  const user = process.env.SMTP_USER?.trim();
-  const pass = process.env.SMTP_PASS?.trim();
-  const from = process.env.SMTP_FROM?.trim();
+  const user = process.env.SMTP_USER!.trim();
+  const pass = process.env.SMTP_PASS!.trim();
+  const from = process.env.SMTP_FROM!.trim();
   const secure = (process.env.SMTP_SECURE ?? "false").toLowerCase() === "true";
 
   // Return null if any required config is missing

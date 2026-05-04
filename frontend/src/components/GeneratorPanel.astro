@@ -83,22 +83,17 @@ const text = copy[lang].generator;
       </label>
       <select id="map-control" class="field-select mono text-sm"></select>
     </div>
-    <label
-      class="mono mt-2 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-(--muted) sm:col-span-2"
-    >
-      <input id="send-emails" type="checkbox" />
-      <span id="send-emails-label">{text.sendEmails}</span>
-    </label>
     <div class="sm:col-span-2 flex flex-wrap gap-3">
       <button id="generate-button" type="submit" class="btn-primary">
         {text.generate}
       </button>
-      <p
-        id="send-emails-note"
-        class="mono self-center text-[0.68rem] uppercase tracking-[0.16em] text-(--muted)"
+      <a
+        id="send-emails-action"
+        href={`/email?lang=${lang}`}
+        class="btn-secondary border-transparent bg-linear-to-r from-[#0f172a] to-[#1f2937] text-white shadow-[0_12px_24px_rgba(15,23,42,0.18)]"
       >
-        {text.sendEmailsNote}
-      </p>
+        {text.sendEmailsAction}
+      </a>
     </div>
   </form>
 </section>
@@ -178,9 +173,7 @@ const text = copy[lang].generator;
     const labelEmail = document.getElementById("label-email");
     const labelRole = document.getElementById("label-role");
     const labelControl = document.getElementById("label-control");
-    const sendEmails = document.getElementById("send-emails");
-    const sendEmailsLabel = document.getElementById("send-emails-label");
-    const sendEmailsNote = document.getElementById("send-emails-note");
+    const sendEmailsAction = document.getElementById("send-emails-action");
     const generateButton = document.getElementById("generate-button");
     const resultsSection = document.getElementById("results-section");
     const resultsTitle = document.getElementById("results-title");
@@ -238,9 +231,10 @@ const text = copy[lang].generator;
       if (labelEmail) labelEmail.textContent = state.text.labelEmail;
       if (labelRole) labelRole.textContent = state.text.labelRole;
       if (labelControl) labelControl.textContent = state.text.labelControl;
-      if (sendEmailsLabel) sendEmailsLabel.textContent = state.text.sendEmails;
-      if (sendEmailsNote)
-        sendEmailsNote.textContent = state.text.sendEmailsNote;
+      if (sendEmailsAction) {
+        sendEmailsAction.textContent = state.text.sendEmailsAction;
+        sendEmailsAction.setAttribute("href", `/email?lang=${state.language}`);
+      }
       if (generateButton) generateButton.textContent = state.text.generate;
       if (resultsTitle) resultsTitle.textContent = state.text.resultsTitle;
       if (sumLabelRows) sumLabelRows.textContent = state.text.rows;
@@ -451,10 +445,7 @@ const text = copy[lang].generator;
       const formData = new FormData();
       formData.append("file", state.file);
       formData.append("map", JSON.stringify(map));
-      formData.append(
-        "sendEmails",
-        sendEmails && sendEmails.checked ? "true" : "false",
-      );
+      formData.append("sendEmails", "false");
 
       setStatus(t("generating"), "neutral");
 
