@@ -1,5 +1,5 @@
 name,control_number,favorite_sport,email
 Jonatan Alcazar,23120001,Football,Jonathanalcazar@itsuruapan.edu.mx
-Compa Yoni,23120002,Basketball,zacekalcazarjur@gmail.com
+Compa Yoni,,Basketball,zacekalcazarjur@gmail.com
 Karol Ruben,23120003,Tennis,aromlorak@gmail.com
-Mock User,23120004,Volleyball,invalid-email-format
+Mock User,,Volleyball,invalid-email-format
