@@ -13,14 +13,14 @@ import { parseSpreadsheetFile } from "./spreadsheet-service";
 import { createZipArchive } from "./zip-service";
 
 /**
- * Maps spreadsheet columns to the required attendee fields.
- * User selects which spreadsheet column contains each required field.
+ * Maps spreadsheet columns to attendee fields.
+ * Name and email are required; other fields are optional.
  */
 export interface ColumnMap {
   name: string;
   email: string;
-  role: string;
-  controlNumber: string;
+  role?: string;
+  controlNumber?: string;
 }
 
 /**
@@ -75,6 +75,7 @@ export interface PipelineResult {
     role: string;
     email: string;
     controlNumber: string;
+    qrFileName: string;
     qrUrl: string;
   }>;
   failures: PipelineFailure[];
@@ -89,6 +90,9 @@ function assertColumnMap(columns: string[], map: ColumnMap): void {
   const requiredMappings = [
     ["name", map.name],
     ["email", map.email],
+  ] as const;
+
+  const optionalMappings = [
     ["role", map.role],
     ["controlNumber", map.controlNumber],
   ] as const;
@@ -101,6 +105,17 @@ function assertColumnMap(columns: string[], map: ColumnMap): void {
     }
 
     // Ensure the mapped column actually exists in the spreadsheet
+    if (!columns.includes(columnName)) {
+      throw new Error(
+        `Mapped column '${columnName}' for ${field} was not found in the file.`,
+      );
+    }
+  }
+
+  // Optional mappings only need to exist if provided
+  for (const [field, columnName] of optionalMappings) {
+    if (!columnName || columnName.trim().length === 0) continue;
+
     if (!columns.includes(columnName)) {
       throw new Error(
         `Mapped column '${columnName}' for ${field} was not found in the file.`,
@@ -149,15 +164,18 @@ export async function runPipeline(
     // Extract and normalize field values from the row
     const name = (row[input.map.name] ?? "").trim();
     const email = (row[input.map.email] ?? "").trim().toLowerCase();
-    const role = (row[input.map.role] ?? "").trim();
-    const controlNumber = (row[input.map.controlNumber] ?? "").trim();
+    const roleRaw = input.map.role ? (row[input.map.role] ?? "").trim() : "";
+    const controlRaw = input.map.controlNumber
+      ? (row[input.map.controlNumber] ?? "").trim()
+      : "";
+    const role = roleRaw || "N/A";
+    const controlNumber = controlRaw || "N/A";
 
     // Validate that all required fields have values
-    if (!name || !email || !role || !controlNumber) {
+    if (!name || !email) {
       failures.push({
         rowNumber,
-        reason:
-          "Missing required field (name, email, role, or control number).",
+        reason: "Missing required field (name or email).",
       });
       continue;
     }
@@ -171,8 +189,10 @@ export async function runPipeline(
       continue;
     }
 
-    // Generate safe filename from control number
-    const safeIdentifier = toSafeIdentifier(controlNumber);
+    // Generate safe filename from first name + email prefix
+    const firstName = name.split(/\s+/)[0] ?? "";
+    const emailPrefix = email.split("@")[0] ?? "";
+    const safeIdentifier = toSafeIdentifier(`${firstName}-${emailPrefix}`);
     let qrFileName = `${safeIdentifier}.png`;
     let duplicateIndex = 1;
 
@@ -280,6 +300,7 @@ export async function runPipeline(
         name: item.name,
         email: item.email,
         controlNumber: item.controlNumber,
+        qrFileName: item.qrFileName,
         qrFilePath: item.qrFilePath,
       })),
       logEvent,
@@ -313,6 +334,7 @@ export async function runPipeline(
       role: item.role,
       email: item.email,
       controlNumber: item.controlNumber,
+      qrFileName: item.qrFileName,
       qrUrl: `/api/download/qr/${encodeURIComponent(item.qrFileName)}`,
     })),
     failures,

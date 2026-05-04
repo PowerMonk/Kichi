@@ -71,29 +71,16 @@ const text = copy[lang].generator;
       >
       <select id="map-email" class="field-select mono text-sm"></select>
     </div>
-    <div>
-      <label id="label-role" class="field-label" for="map-role"
-        >{text.labelRole}</label
-      >
-      <select id="map-role" class="field-select mono text-sm"></select>
-    </div>
-    <div>
-      <label id="label-control" class="field-label" for="map-control">
-        {text.labelControl}
-      </label>
-      <select id="map-control" class="field-select mono text-sm"></select>
-    </div>
+    <label
+      class="mono mt-2 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-(--muted) sm:col-span-2"
+    >
+      <input id="send-emails" type="checkbox" />
+      <span id="send-emails-label">{text.sendEmailsToggle}</span>
+    </label>
     <div class="sm:col-span-2 flex flex-wrap gap-3">
       <button id="generate-button" type="submit" class="btn-primary">
         {text.generate}
       </button>
-      <a
-        id="send-emails-action"
-        href={`/email?lang=${lang}`}
-        class="btn-secondary border-transparent bg-linear-to-r from-[#0f172a] to-[#1f2937] text-white shadow-[0_12px_24px_rgba(15,23,42,0.18)]"
-      >
-        {text.sendEmailsAction}
-      </a>
     </div>
   </form>
 </section>
@@ -167,13 +154,10 @@ const text = copy[lang].generator;
     const mappingForm = document.getElementById("mapping-form");
     const mapName = document.getElementById("map-name");
     const mapEmail = document.getElementById("map-email");
-    const mapRole = document.getElementById("map-role");
-    const mapControl = document.getElementById("map-control");
     const labelName = document.getElementById("label-name");
     const labelEmail = document.getElementById("label-email");
-    const labelRole = document.getElementById("label-role");
-    const labelControl = document.getElementById("label-control");
-    const sendEmailsAction = document.getElementById("send-emails-action");
+    const sendEmails = document.getElementById("send-emails");
+    const sendEmailsLabel = document.getElementById("send-emails-label");
     const generateButton = document.getElementById("generate-button");
     const resultsSection = document.getElementById("results-section");
     const resultsTitle = document.getElementById("results-title");
@@ -229,11 +213,8 @@ const text = copy[lang].generator;
         mappingSubtitle.textContent = state.text.mappingSubtitle;
       if (labelName) labelName.textContent = state.text.labelName;
       if (labelEmail) labelEmail.textContent = state.text.labelEmail;
-      if (labelRole) labelRole.textContent = state.text.labelRole;
-      if (labelControl) labelControl.textContent = state.text.labelControl;
-      if (sendEmailsAction) {
-        sendEmailsAction.textContent = state.text.sendEmailsAction;
-        sendEmailsAction.setAttribute("href", `/email?lang=${state.language}`);
+      if (sendEmailsLabel) {
+        sendEmailsLabel.textContent = state.text.sendEmailsToggle;
       }
       if (generateButton) generateButton.textContent = state.text.generate;
       if (resultsTitle) resultsTitle.textContent = state.text.resultsTitle;
@@ -344,12 +325,6 @@ const text = copy[lang].generator;
       state.columns = payload.columns ?? [];
       buildOptions(mapName, state.columns, ["name", "full_name"]);
       buildOptions(mapEmail, state.columns, ["email", "correo"]);
-      buildOptions(mapRole, state.columns, ["role", "category"]);
-      buildOptions(mapControl, state.columns, [
-        "control_number",
-        "matricula",
-        "id",
-      ]);
 
       if (mappingSection) mappingSection.classList.remove("hidden");
 
@@ -393,7 +368,7 @@ const text = copy[lang].generator;
           const link = document.createElement("a");
           link.className = "result-link";
           link.href = `${API_BASE}${record.qrUrl}`;
-          link.download = `${record.controlNumber}.png`;
+          link.download = record.qrFileName ?? `${record.controlNumber}.png`;
           link.textContent = t("downloadQr");
 
           card.append(title, subtitle, link);
@@ -430,7 +405,7 @@ const text = copy[lang].generator;
         return;
       }
 
-      if (!mapName || !mapEmail || !mapRole || !mapControl) {
+      if (!mapName || !mapEmail) {
         setStatus(t("mappingMissing"), "error");
         return;
       }
@@ -438,14 +413,15 @@ const text = copy[lang].generator;
       const map = {
         name: mapName.value,
         email: mapEmail.value,
-        role: mapRole.value,
-        controlNumber: mapControl.value,
       };
 
       const formData = new FormData();
       formData.append("file", state.file);
       formData.append("map", JSON.stringify(map));
-      formData.append("sendEmails", "false");
+      formData.append(
+        "sendEmails",
+        sendEmails && sendEmails.checked ? "true" : "false",
+      );
 
       setStatus(t("generating"), "neutral");
 

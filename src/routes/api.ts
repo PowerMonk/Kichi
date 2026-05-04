@@ -63,7 +63,7 @@ function normalizeUuid(input: string): string | null {
 
 /**
  * Parses and validates the column mapping from the frontend.
- * Ensures all required fields (name, email, role, controlNumber) are strings.
+ * Ensures required fields (name, email) are strings; optional fields may be omitted.
  * Throws if the mapping is invalid or missing required fields.
  */
 function parseColumnMap(input: string): ColumnMap {
@@ -71,12 +71,7 @@ function parseColumnMap(input: string): ColumnMap {
   const parsed = JSON.parse(input) as Partial<ColumnMap>;
 
   // Validate that all required fields exist and are strings
-  if (
-    typeof parsed.name !== "string" ||
-    typeof parsed.email !== "string" ||
-    typeof parsed.role !== "string" ||
-    typeof parsed.controlNumber !== "string"
-  ) {
+  if (typeof parsed.name !== "string" || typeof parsed.email !== "string") {
     throw new Error("Invalid column mapping payload.");
   }
 
@@ -84,8 +79,11 @@ function parseColumnMap(input: string): ColumnMap {
   return {
     name: parsed.name,
     email: parsed.email,
-    role: parsed.role,
-    controlNumber: parsed.controlNumber,
+    role: typeof parsed.role === "string" ? parsed.role : undefined,
+    controlNumber:
+      typeof parsed.controlNumber === "string"
+        ? parsed.controlNumber
+        : undefined,
   };
 }
 
