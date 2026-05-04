@@ -1,0 +1,80 @@
+---
+import { copy, type Language } from "../lib/site-copy";
+
+const { lang = "es" } = Astro.props as { lang?: Language };
+const scanner = copy[lang].scanner;
+---
+
+<div
+  id="scanner-latest-card"
+  class="app-glass w-full max-w-2xl rounded border border-(--line) bg-white/70 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+>
+  <div
+    class="mb-4 flex items-start justify-between border-b border-(--line) pb-4"
+  >
+    <div>
+      <div class="mb-1 flex items-center gap-2">
+        <svg
+          id="scanner-latest-icon"
+          class="app-icon text-(--signal)"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path d="M9 12l2 2l4-4"></path>
+          <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
+        </svg>
+        <span id="scanner-latest-status" class="app-label text-(--signal)">
+          {scanner.latestStatus}
+        </span>
+      </div>
+      <h3 id="scanner-latest-title" class="text-xl font-semibold text-(--ink)">
+        {scanner.latestTitle}
+      </h3>
+    </div>
+    <div
+      class="mono rounded border border-(--line) bg-(--paper-strong) px-3 py-1 text-xs text-(--muted)"
+    >
+      <span id="scanner-uuid-label">{scanner.uuidLabel}</span>:
+      <span id="scanner-value-uuid">-</span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+    <div>
+      <p id="scanner-field-name" class="app-label mb-1">
+        {scanner.fieldName}
+      </p>
+      <p id="scanner-value-name" class="text-base font-semibold text-(--ink)">
+        -
+      </p>
+    </div>
+    <div>
+      <p id="scanner-field-role" class="app-label mb-1">
+        {scanner.fieldRole}
+      </p>
+      <span
+        id="scanner-value-role"
+        class="inline-block rounded bg-(--ink) px-2 py-1 text-xs text-white"
+      >
+        -
+      </span>
+    </div>
+    <div>
+      <p id="scanner-field-company" class="app-label mb-1">
+        {scanner.fieldCompany}
+      </p>
+      <p id="scanner-value-company" class="text-base text-(--ink)">-</p>
+    </div>
+    <div>
+      <p id="scanner-field-control" class="app-label mb-1">
+        {scanner.fieldControl}
+      </p>
+      <p
+        id="scanner-value-control"
+        class="mono inline-block rounded border border-(--line) bg-(--paper-strong) px-2 py-1 text-xs text-(--ink)"
+      >
+        -
+      </p>
+    </div>
+  </div>
+</div>

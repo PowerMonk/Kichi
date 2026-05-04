@@ -1,6 +1,8 @@
 ---
 import "../styles/global.css";
 import AppShell from "../components/AppShell.astro";
+import ScannerLatestCard from "../components/ScannerLatestCard.astro";
+import ScannerRecentActivity from "../components/ScannerRecentActivity.astro";
 import { copy, type Language } from "../lib/site-copy";
 
 const langParam = Astro.url.searchParams.get("lang");
@@ -41,272 +43,9 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
             </div>
           </div>
 
-          <!-- <div
-            class="app-glass relative flex aspect-4/3 w-full max-w-2xl flex-col items-center justify-center rounded border border-(--line) p-2"
-          >
-            <div
-              class="pointer-events-none absolute inset-8 rounded-lg border-2 border-dashed"
-              style="border-color: rgba(193, 18, 31, 0.3);"
-            >
-              <div
-                class="absolute left-0 top-0 h-8 w-8 border-l-4 border-t-4 border-(--signal)"
-              >
-              </div>
-              <div
-                class="absolute right-0 top-0 h-8 w-8 border-r-4 border-t-4 border-(--signal)"
-              >
-              </div>
-              <div
-                class="absolute bottom-0 left-0 h-8 w-8 border-b-4 border-l-4 border-(--signal)"
-              >
-              </div>
-              <div
-                class="absolute bottom-0 right-0 h-8 w-8 border-b-4 border-r-4 border-(--signal)"
-              >
-              </div>
-            </div>
-            <svg
-              class="mb-4 h-16 w-16 text-(--signal) opacity-80"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                d="M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3M7 12h10"
-                fill="none"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.6"></path>
-            </svg>
-            <p
-              id="scanner-ready-title"
-              class="text-xl font-semibold text-(--signal)"
-            >
-              {scannerCopy.readyTitle}
-            </p>
-            <p
-              id="scanner-ready-subtitle"
-              class="mt-2 max-w-md text-center text-sm text-(--muted)"
-            >
-              {scannerCopy.readySubtitle}
-            </p>
-          </div> -->
-
-          <div
-            id="scanner-latest-card"
-            class="app-glass w-full max-w-2xl rounded border border-(--line) bg-white/70 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
-          >
-            <div
-              class="mb-4 flex items-start justify-between border-b border-(--line) pb-4"
-            >
-              <div>
-                <div class="mb-1 flex items-center gap-2">
-                  <svg
-                    id="scanner-latest-icon"
-                    class="app-icon text-(--signal)"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 12l2 2l4-4"></path>
-                    <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
-                  </svg>
-                  <span
-                    id="scanner-latest-status"
-                    class="app-label text-(--signal)"
-                  >
-                    {scannerCopy.latestStatus}
-                  </span>
-                </div>
-                <h3
-                  id="scanner-latest-title"
-                  class="text-xl font-semibold text-(--ink)"
-                >
-                  {scannerCopy.latestTitle}
-                </h3>
-              </div>
-              <div
-                class="mono rounded border border-(--line) bg-(--paper-strong) px-3 py-1 text-xs text-(--muted)"
-              >
-                <span id="scanner-uuid-label">{scannerCopy.uuidLabel}</span>:
-                <span id="scanner-value-uuid">#KCH-8829-A</span>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
-              <div>
-                <p id="scanner-field-name" class="app-label mb-1">
-                  {scannerCopy.fieldName}
-                </p>
-                <p
-                  id="scanner-value-name"
-                  class="text-base font-semibold text-(--ink)"
-                >
-                  {scannerCopy.sampleName}
-                </p>
-              </div>
-              <div>
-                <p id="scanner-field-role" class="app-label mb-1">
-                  {scannerCopy.fieldRole}
-                </p>
-                <span
-                  id="scanner-value-role"
-                  class="inline-block rounded bg-(--ink) px-2 py-1 text-xs text-white"
-                >
-                  {scannerCopy.sampleRole}
-                </span>
-              </div>
-              <div>
-                <p id="scanner-field-company" class="app-label mb-1">
-                  {scannerCopy.fieldCompany}
-                </p>
-                <p id="scanner-value-company" class="text-base text-(--ink)">
-                  {scannerCopy.sampleCompany}
-                </p>
-              </div>
-              <div>
-                <p id="scanner-field-control" class="app-label mb-1">
-                  {scannerCopy.fieldControl}
-                </p>
-                <p
-                  id="scanner-value-control"
-                  class="mono inline-block rounded border border-(--line) bg-(--paper-strong) px-2 py-1 text-xs text-(--ink)"
-                >
-                  {scannerCopy.sampleControl}
-                </p>
-              </div>
-            </div>
-          </div>
+          <ScannerLatestCard lang={lang} />
         </section>
-
-        <aside
-          class="app-glass w-full shrink-0 rounded border border-(--line) xl:w-80 xl:sticky xl:top-10"
-        >
-          <div
-            class="flex items-center justify-between border-b border-(--line) bg-white/70 px-4 py-3"
-          >
-            <h3 id="scanner-activity-title" class="app-label text-(--ink)">
-              {scannerCopy.activityTitle}
-            </h3>
-            <svg
-              class="app-icon text-(--muted)"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path d="M12 6v6l4 2"></path>
-              <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
-            </svg>
-          </div>
-          <div id="scanner-activity-list" class="space-y-2 p-2">
-            <div
-              class="rounded border border-(--line) bg-white/80 p-3 space-y-2"
-            >
-              <div class="mono text-xs text-(--muted)">#KCH-8829-A</div>
-              <div class="flex items-center gap-2">
-                <svg
-                  class="app-icon text-[#16a34a]"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path d="M9 12l2 2l4-4"></path>
-                  <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
-                </svg>
-                <span class="text-sm text-(--ink)">
-                  {scannerCopy.sampleName}
-                </span>
-              </div>
-              <div class="mono text-xs text-(--muted)">10:42:15</div>
-            </div>
-            <div
-              class="rounded border border-(--line) bg-white/80 p-3 space-y-2"
-            >
-              <div class="mono text-xs text-(--muted)">#KCH-7104-B</div>
-              <div class="flex items-center gap-2">
-                <svg
-                  class="app-icon text-[#16a34a]"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path d="M9 12l2 2l4-4"></path>
-                  <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
-                </svg>
-                <span class="text-sm text-(--ink)">Ana Silva</span>
-              </div>
-              <div class="mono text-xs text-(--muted)">10:41:02</div>
-            </div>
-            <div
-              class="rounded border border-(--line) bg-white/80 p-3 space-y-2"
-            >
-              <div class="mono text-xs text-(--muted)">#KCH-3391-C</div>
-              <div class="flex items-center gap-2">
-                <svg
-                  class="app-icon text-[#16a34a]"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path d="M9 12l2 2l4-4"></path>
-                  <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
-                </svg>
-                <span class="text-sm text-(--ink)">Luis Robles</span>
-              </div>
-              <div class="mono text-xs text-(--muted)">10:38:45</div>
-            </div>
-            <div
-              class="rounded border border-[#fecaca] bg-[#fef2f2] p-3 space-y-2"
-            >
-              <div
-                id="scanner-activity-unknown"
-                class="mono text-xs font-semibold text-[#991b1b]"
-              >
-                {scannerCopy.activityUnknown}
-              </div>
-              <div class="flex items-center gap-2">
-                <svg
-                  class="app-icon text-[#991b1b]"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path d="M12 2a10 10 0 1 1 0 20a10 10 0 0 1 0-20z"></path>
-                  <path d="M12 7v6"></path>
-                  <path d="M12 16h.01"></path>
-                </svg>
-                <span
-                  id="scanner-activity-invalid"
-                  class="text-sm text-[#991b1b]"
-                >
-                  {scannerCopy.activityInvalid}
-                </span>
-              </div>
-              <div class="mono text-xs text-(--muted)">10:35:10</div>
-            </div>
-            <div
-              class="rounded border border-(--line) bg-white/80 p-3 space-y-2"
-            >
-              <div class="mono text-xs text-(--muted)">#KCH-9921-A</div>
-              <div class="flex items-center gap-2">
-                <svg
-                  class="app-icon text-[#16a34a]"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path d="M9 12l2 2l4-4"></path>
-                  <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
-                </svg>
-                <span class="text-sm text-(--ink)">Maria Fernanda</span>
-              </div>
-              <div class="mono text-xs text-(--muted)">10:30:05</div>
-            </div>
-          </div>
-          <div
-            class="border-t border-(--line) bg-white/70 px-3 py-3 text-center"
-          >
-            <button
-              id="scanner-activity-action"
-              class="app-label text-(--signal)"
-            >
-              {scannerCopy.activityAction}
-            </button>
-          </div>
-        </aside>
+        <ScannerRecentActivity lang={lang} />
       </div>
     </AppShell>
     <script is:inline define:vars={{ copy }}>
@@ -319,7 +58,7 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
         };
 
         let showAllActivity = false;
-        const maxActivityItems = 10;
+        const maxActivityItems = 7;
 
         const updateActivityActionLabel = () => {
           const scanner = copy[getLanguage()].scanner;
@@ -420,10 +159,18 @@ const pageTitle = lang === "es" ? "Kichi - escaner" : "Kichi - scanner";
         const updateActivityVisibility = () => {
           if (!activityList) return;
           const items = Array.from(activityList.children);
+          if (items.length <= maxActivityItems) {
+            showAllActivity = false;
+          }
           items.forEach((item, index) => {
             const isVisible = showAllActivity || index < maxActivityItems;
             item.style.display = isVisible ? "" : "none";
           });
+          const action = document.getElementById("scanner-activity-action");
+          if (action) {
+            action.style.display =
+              items.length > maxActivityItems ? "" : "none";
+          }
           updateActivityActionLabel();
         };
 

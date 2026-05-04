@@ -1,0 +1,28 @@
+---
+import { copy, type Language } from "../lib/site-copy";
+
+const { lang = "es" } = Astro.props as { lang?: Language };
+const scanner = copy[lang].scanner;
+---
+
+<aside
+  class="app-glass w-full shrink-0 rounded border border-(--line) xl:w-80 xl:sticky xl:top-10"
+>
+  <div
+    class="flex items-center justify-between border-b border-(--line) bg-white/70 px-4 py-3"
+  >
+    <h3 id="scanner-activity-title" class="app-label text-(--ink)">
+      {scanner.activityTitle}
+    </h3>
+    <svg class="app-icon text-(--muted)" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 6v6l4 2"></path>
+      <path d="M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z"></path>
+    </svg>
+  </div>
+  <div id="scanner-activity-list" class="space-y-2 p-2"></div>
+  <div class="border-t border-(--line) bg-white/70 px-3 py-3 text-center">
+    <button id="scanner-activity-action" class="app-label text-(--signal)">
+      {scanner.activityAction}
+    </button>
+  </div>
+</aside>

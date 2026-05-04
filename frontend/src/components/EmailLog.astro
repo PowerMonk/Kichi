@@ -1,0 +1,24 @@
+---
+import { copy, type Language } from "../lib/site-copy";
+
+const { lang = "es" } = Astro.props as { lang?: Language };
+const email = copy[lang].email;
+---
+
+<section class="app-glass overflow-hidden rounded border border-(--line)">
+  <div
+    class="flex items-center justify-between border-b border-(--line) px-5 py-4"
+  >
+    <h3 id="email-log-title" class="app-label text-(--ink)">
+      {email.logTitle}
+    </h3>
+    <button
+      id="email-log-toggle"
+      class="app-label text-(--signal)"
+      type="button"
+    >
+      {email.logToggleMore}
+    </button>
+  </div>
+  <div id="email-log-list" class="space-y-3 bg-white/70 px-5 py-4"></div>
+</section>
