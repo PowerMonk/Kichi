@@ -16,7 +16,9 @@ const email = copy[lang].email;
       <span id="email-summary-total" class="text-(--muted)">
         {email.summaryTotal}
       </span>
-      <span class="font-semibold text-(--ink)">0</span>
+      <span id="email-summary-total-value" class="font-semibold text-(--ink)">
+        0
+      </span>
     </div>
     <div
       class="flex items-center justify-between border-b border-(--line) pb-2"
@@ -24,7 +26,9 @@ const email = copy[lang].email;
       <span id="email-summary-sent" class="text-(--muted)">
         {email.summarySent}
       </span>
-      <span class="font-semibold text-(--signal)">0</span>
+      <span id="email-summary-sent-value" class="font-semibold text-(--signal)">
+        0
+      </span>
     </div>
     <div
       class="flex items-center justify-between border-b border-(--line) pb-2"
@@ -32,13 +36,20 @@ const email = copy[lang].email;
       <span id="email-summary-pending" class="text-(--muted)">
         {email.summaryPending}
       </span>
-      <span class="font-semibold text-(--ink)">0</span>
+      <span id="email-summary-pending-value" class="font-semibold text-(--ink)">
+        0
+      </span>
     </div>
     <div class="flex items-center justify-between">
       <span id="email-summary-failed" class="text-(--muted)">
         {email.summaryFailed}
       </span>
-      <span class="font-semibold text-[#991b1b]">0</span>
+      <span
+        id="email-summary-failed-value"
+        class="font-semibold text-[#991b1b]"
+      >
+        0
+      </span>
     </div>
   </div>
 </section>

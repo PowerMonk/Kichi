@@ -68,6 +68,15 @@ export interface PipelineResult {
   failedCount: number;
   emailSentCount: number;
   emailFailedCount: number;
+  emailEnabled: boolean;
+  emailTargetCount: number;
+  emailLog: Array<{
+    name: string;
+    email: string;
+    controlNumber: string;
+    status: "sent" | "failed";
+    reason?: string;
+  }>;
   zipUrl: string | null;
   records: Array<{
     uuid: string;
@@ -292,8 +301,12 @@ export async function runPipeline(
   // Send emails if requested
   let emailSentCount = 0;
   let emailFailedCount = 0;
+  let emailEnabled = false;
+  let emailTargetCount = 0;
+  let emailLog: PipelineResult["emailLog"] = [];
 
   if (input.sendEmails && generated.length > 0) {
+    emailTargetCount = generated.length;
     // Send emails sequentially to avoid SMTP rate limiting
     const emailResult = await sendSequentialEmails(
       generated.map((item) => ({
@@ -305,6 +318,25 @@ export async function runPipeline(
       })),
       logEvent,
     );
+
+    emailEnabled = emailResult.enabled;
+    if (emailResult.enabled) {
+      emailLog = [
+        ...emailResult.sent.map((item) => ({
+          name: item.name,
+          email: item.email,
+          controlNumber: item.controlNumber,
+          status: "sent" as const,
+        })),
+        ...emailResult.failed.map((item) => ({
+          name: item.name,
+          email: item.email,
+          controlNumber: item.controlNumber,
+          status: "failed" as const,
+          reason: item.reason,
+        })),
+      ];
+    }
 
     // If SMTP is not configured, add a failure note
     if (!emailResult.enabled) {
@@ -327,6 +359,9 @@ export async function runPipeline(
     failedCount: failures.length,
     emailSentCount,
     emailFailedCount,
+    emailEnabled,
+    emailTargetCount,
+    emailLog,
     zipUrl,
     records: generated.map((item) => ({
       uuid: item.uuid,
