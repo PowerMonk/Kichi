@@ -71,16 +71,18 @@ const text = copy[lang].generator;
       >
       <select id="map-email" class="field-select mono text-sm"></select>
     </div>
-    <label
-      class="mono mt-2 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-(--muted) sm:col-span-2"
-    >
-      <input id="send-emails" type="checkbox" />
-      <span id="send-emails-label">{text.sendEmailsToggle}</span>
-    </label>
     <div class="sm:col-span-2 flex flex-wrap gap-3">
       <button id="generate-button" type="submit" class="btn-primary">
         {text.generate}
       </button>
+      <a
+        id="send-emails-action"
+        href={`/email?lang=${lang}`}
+        class="btn-secondary border-transparent bg-linear-to-r from-[#0f172a] to-[#1f2937] text-white shadow-[0_12px_24px_rgba(15,23,42,0.18)]"
+        hidden
+      >
+        {text.sendEmailsAction}
+      </a>
     </div>
   </form>
 </section>
@@ -156,8 +158,7 @@ const text = copy[lang].generator;
     const mapEmail = document.getElementById("map-email");
     const labelName = document.getElementById("label-name");
     const labelEmail = document.getElementById("label-email");
-    const sendEmails = document.getElementById("send-emails");
-    const sendEmailsLabel = document.getElementById("send-emails-label");
+    const sendEmailsAction = document.getElementById("send-emails-action");
     const generateButton = document.getElementById("generate-button");
     const resultsSection = document.getElementById("results-section");
     const resultsTitle = document.getElementById("results-title");
@@ -182,6 +183,7 @@ const text = copy[lang].generator;
       columns: [],
       language: initialLanguage === "en" ? "en" : "es",
       lastResult: null,
+      pendingEntries: [],
       text: copy[initialLanguage === "en" ? "en" : "es"].generator,
     };
 
@@ -213,8 +215,9 @@ const text = copy[lang].generator;
         mappingSubtitle.textContent = state.text.mappingSubtitle;
       if (labelName) labelName.textContent = state.text.labelName;
       if (labelEmail) labelEmail.textContent = state.text.labelEmail;
-      if (sendEmailsLabel) {
-        sendEmailsLabel.textContent = state.text.sendEmailsToggle;
+      if (sendEmailsAction) {
+        sendEmailsAction.textContent = state.text.sendEmailsAction;
+        sendEmailsAction.setAttribute("href", `/email?lang=${state.language}`);
       }
       if (generateButton) generateButton.textContent = state.text.generate;
       if (resultsTitle) resultsTitle.textContent = state.text.resultsTitle;
@@ -277,6 +280,7 @@ const text = copy[lang].generator;
       if (mappingSection) mappingSection.classList.add("hidden");
       if (resultsSection) resultsSection.classList.add("hidden");
       if (parseButton) parseButton.hidden = !file;
+      if (sendEmailsAction) sendEmailsAction.hidden = true;
     };
 
     const buildOptions = (select, columns, preferred) => {
@@ -395,6 +399,31 @@ const text = copy[lang].generator;
       }
 
       if (resultsSection) resultsSection.classList.remove("hidden");
+
+      if (sendEmailsAction) {
+        sendEmailsAction.hidden = (result.createdCount ?? 0) === 0;
+      }
+
+      if (typeof window !== "undefined") {
+        const pendingEntries = (result.records ?? []).map((record) => ({
+          name: record.name,
+          email: record.email,
+          controlNumber: record.controlNumber,
+          qrFileName: record.qrFileName,
+        }));
+
+        state.pendingEntries = pendingEntries;
+
+        try {
+          window.localStorage.setItem(
+            "kichi-email-pending",
+            JSON.stringify(pendingEntries),
+          );
+          window.localStorage.removeItem("kichi-email-batch");
+        } catch {
+          // Ignore storage errors in restricted contexts.
+        }
+      }
     }
 
     const generateBatch = async (event) => {
@@ -418,10 +447,7 @@ const text = copy[lang].generator;
       const formData = new FormData();
       formData.append("file", state.file);
       formData.append("map", JSON.stringify(map));
-      formData.append(
-        "sendEmails",
-        sendEmails && sendEmails.checked ? "true" : "false",
-      );
+      formData.append("sendEmails", "false");
 
       setStatus(t("generating"), "neutral");
 
@@ -490,6 +516,68 @@ const text = copy[lang].generator;
             error instanceof Error ? error.message : t("generationFailed");
           setStatus(message, "error");
         });
+      });
+    }
+
+    if (sendEmailsAction) {
+      sendEmailsAction.addEventListener("click", async (event) => {
+        event.preventDefault();
+
+        let pending = state.pendingEntries;
+        if (pending.length === 0) {
+          try {
+            const raw = window.localStorage.getItem("kichi-email-pending");
+            pending = raw ? JSON.parse(raw) : [];
+          } catch {
+            pending = [];
+          }
+        }
+
+        if (!pending || pending.length === 0) {
+          setStatus(t("noEmailTargets"), "error");
+          return;
+        }
+
+        sendEmailsAction.setAttribute("aria-busy", "true");
+        setStatus(t("sendingEmails"), "neutral");
+
+        try {
+          const response = await fetch(`${API_BASE}/api/send-emails`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ entries: pending }),
+          });
+
+          const payload = await response.json();
+
+          if (!response.ok) {
+            throw new Error(payload.error ?? t("sendEmailsFailed"));
+          }
+
+          const emailBatch = {
+            createdAt: new Date().toISOString(),
+            targetCount: payload.targetCount ?? pending.length,
+            sentCount: payload.sentCount ?? 0,
+            failedCount: payload.failedCount ?? 0,
+            log: payload.log ?? [],
+          };
+
+          try {
+            window.localStorage.setItem(
+              "kichi-email-batch",
+              JSON.stringify(emailBatch),
+            );
+          } catch {
+            // Ignore storage errors.
+          }
+
+          window.location.href = `/email?lang=${state.language}`;
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : t("sendEmailsFailed");
+          setStatus(message, "error");
+          sendEmailsAction.removeAttribute("aria-busy");
+        }
       });
     }
 

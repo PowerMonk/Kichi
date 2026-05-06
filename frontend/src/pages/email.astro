@@ -110,10 +110,117 @@ const smtpFrom = import.meta.env.PUBLIC_SMTP_FROM ?? fallbackNotConfigured;
       (() => {
         const maxLogItems = 7;
         let showAll = false;
+        const batchKey = "kichi-email-batch";
 
         const getLanguage = () => {
           const param = new URLSearchParams(window.location.search).get("lang");
           return param === "en" ? "en" : "es";
+        };
+
+        const setText = (id, value) => {
+          const element = document.getElementById(id);
+          if (element) element.textContent = value;
+        };
+
+        const formatTemplate = (template, params) =>
+          Object.entries(params).reduce(
+            (output, [key, value]) => output.replace(`{${key}}`, String(value)),
+            template,
+          );
+
+        const readBatch = () => {
+          try {
+            const raw = window.localStorage.getItem(batchKey);
+            return raw ? JSON.parse(raw) : null;
+          } catch {
+            return null;
+          }
+        };
+
+        const buildLogItem = (entry, labels) => {
+          const wrapper = document.createElement("div");
+          wrapper.dataset.emailItem = "true";
+
+          const isFailed = entry.status === "failed";
+          wrapper.className = isFailed
+            ? "flex items-start gap-3 rounded border border-[#fecaca] bg-[#fef2f2] p-3"
+            : "flex items-start gap-3 rounded border border-(--line) bg-white/90 p-3";
+
+          const icon = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "svg",
+          );
+          icon.setAttribute("viewBox", "0 0 24 24");
+          icon.setAttribute("aria-hidden", "true");
+          icon.classList.add(
+            "app-icon",
+            isFailed ? "text-[#991b1b]" : "text-(--signal)",
+          );
+
+          if (isFailed) {
+            const iconCircle = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "path",
+            );
+            iconCircle.setAttribute(
+              "d",
+              "M12 2a10 10 0 1 1 0 20a10 10 0 0 1 0-20z",
+            );
+            icon.appendChild(iconCircle);
+
+            const iconLine = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "path",
+            );
+            iconLine.setAttribute("d", "M12 7v6");
+            icon.appendChild(iconLine);
+
+            const iconDot = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "path",
+            );
+            iconDot.setAttribute("d", "M12 16h.01");
+            icon.appendChild(iconDot);
+          } else {
+            const iconPath = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "path",
+            );
+            iconPath.setAttribute("d", "M9 12l2 2l4-4");
+            icon.appendChild(iconPath);
+
+            const iconCircle = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "path",
+            );
+            iconCircle.setAttribute(
+              "d",
+              "M12 22a10 10 0 1 1 0-20a10 10 0 0 1 0 20z",
+            );
+            icon.appendChild(iconCircle);
+          }
+
+          const body = document.createElement("div");
+
+          const title = document.createElement("p");
+          title.className = isFailed
+            ? "text-sm text-[#991b1b]"
+            : "text-sm text-(--ink)";
+          const nameOrEmail = entry.name || entry.email;
+          title.textContent = `${
+            isFailed ? labels.failed : labels.sent
+          }: ${nameOrEmail}`;
+
+          const subtitle = document.createElement("p");
+          subtitle.className = "mono text-xs text-(--muted)";
+          subtitle.textContent = isFailed
+            ? entry.reason || ""
+            : entry.email || "";
+
+          body.append(title, subtitle);
+          wrapper.append(icon, body);
+
+          return wrapper;
         };
 
         const updateLogVisibility = () => {
@@ -141,13 +248,60 @@ const smtpFrom = import.meta.env.PUBLIC_SMTP_FROM ?? fallbackNotConfigured;
           }
         };
 
+        const renderEmailBatch = () => {
+          const batch = readBatch();
+          const total = Number(batch?.targetCount ?? 0);
+          const sent = Number(batch?.sentCount ?? 0);
+          const failed = Number(batch?.failedCount ?? 0);
+          const pending = Math.max(total - sent - failed, 0);
+          const percent = total > 0 ? Math.round((sent / total) * 100) : 0;
+          const emailCopy = copy[getLanguage()].email;
+
+          const percentLabel = document.getElementById(
+            "email-progress-percent",
+          );
+          if (percentLabel) percentLabel.textContent = `${percent}%`;
+
+          const bar = document.getElementById("email-progress-bar");
+          if (bar) bar.style.width = `${percent}%`;
+
+          setText(
+            "email-progress-completed",
+            formatTemplate(emailCopy.progressCompleted, {
+              sent,
+              total,
+            }),
+          );
+          setText(
+            "email-progress-remaining",
+            formatTemplate(emailCopy.progressRemaining, {
+              eta: "--",
+            }),
+          );
+
+          setText("email-summary-total-value", String(total));
+          setText("email-summary-sent-value", String(sent));
+          setText("email-summary-pending-value", String(pending));
+          setText("email-summary-failed-value", String(failed));
+
+          const logList = document.getElementById("email-log-list");
+          if (logList) {
+            logList.innerHTML = "";
+            const logEntries = Array.isArray(batch?.log) ? batch.log : [];
+            const labels = {
+              sent: emailCopy.logSentLabel,
+              failed: emailCopy.logFailedLabel,
+            };
+            logEntries.forEach((entry) => {
+              logList.appendChild(buildLogItem(entry, labels));
+            });
+          }
+
+          updateLogVisibility();
+        };
+
         const applyLanguage = (language) => {
           const emailCopy = copy[language].email;
-          const setText = (id, value) => {
-            const element = document.getElementById(id);
-            if (element) element.textContent = value;
-          };
-
           setText("email-title", emailCopy.title);
           setText("email-batch", `${emailCopy.batchLabel}: KCH-2024-EVT-089`);
           setText("email-config-title", emailCopy.configTitle);
@@ -155,8 +309,6 @@ const smtpFrom = import.meta.env.PUBLIC_SMTP_FROM ?? fallbackNotConfigured;
           setText("email-config-from", emailCopy.configFrom);
           setText("email-status-label", emailCopy.statusLabel);
           setText("email-status-value", emailCopy.statusValue);
-          setText("email-progress-completed", emailCopy.progressCompleted);
-          setText("email-progress-remaining", emailCopy.progressRemaining);
           setText("email-log-title", emailCopy.logTitle);
           setText("email-summary-title", emailCopy.summaryTitle);
           setText("email-summary-total", emailCopy.summaryTotal);
@@ -167,7 +319,7 @@ const smtpFrom = import.meta.env.PUBLIC_SMTP_FROM ?? fallbackNotConfigured;
           setText("email-action-cancel", emailCopy.actionCancel);
           setText("email-action-retry", emailCopy.actionRetry);
 
-          updateLogVisibility();
+          renderEmailBatch();
         };
 
         const toggle = document.getElementById("email-log-toggle");
@@ -179,7 +331,6 @@ const smtpFrom = import.meta.env.PUBLIC_SMTP_FROM ?? fallbackNotConfigured;
         }
 
         applyLanguage(getLanguage());
-        updateLogVisibility();
 
         window.addEventListener("language-change", (event) => {
           const detail = event.detail;

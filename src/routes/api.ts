@@ -1,8 +1,11 @@
+import { join } from "node:path";
 import { EXPORT_DIR, QR_DIR } from "../lib/constants";
 import { getAttendeeByUuid } from "../lib/database";
 import { isSafeDownloadName } from "../lib/filesystem";
 import { logEvent } from "../lib/logger";
+import { isValidEmailAddress } from "../lib/validators";
 import { ColumnMap, runPipeline } from "../services/pipeline-service";
+import { sendSequentialEmails } from "../services/email-service";
 import { parseSpreadsheetFile } from "../services/spreadsheet-service";
 
 // cors == cross origin resource sharing, a security feature implemented by browsers to restrict web pages from making requests to a different domain than the one that served the web page. The corsHeaders function generates the necessary HTTP headers to allow cross-origin requests from any domain, enabling the frontend (which may be served from a different origin) to communicate with this API without being blocked by the browser's same-origin policy.
@@ -171,6 +174,120 @@ async function handleGenerateRequest(request: Request): Promise<Response> {
 }
 
 /**
+ * Handles POST /api/send-emails requests.
+ * Accepts a list of generated records and dispatches emails sequentially.
+ */
+async function handleSendEmailsRequest(request: Request): Promise<Response> {
+  let payload: {
+    entries?: Array<{
+      name?: string;
+      email?: string;
+      controlNumber?: string;
+      qrFileName?: string;
+    }>;
+  };
+
+  try {
+    payload = (await request.json()) as {
+      entries?: Array<{
+        name?: string;
+        email?: string;
+        controlNumber?: string;
+        qrFileName?: string;
+      }>;
+    };
+  } catch {
+    return errorResponse("Invalid JSON payload.", 400);
+  }
+
+  const entries = Array.isArray(payload.entries) ? payload.entries : [];
+
+  if (entries.length === 0) {
+    return errorResponse("Missing entries.", 400);
+  }
+
+  let normalized: Array<{
+    name: string;
+    email: string;
+    controlNumber: string;
+    qrFileName: string;
+    qrFilePath: string;
+  }>;
+
+  try {
+    normalized = entries.map((entry, index) => {
+      const name = typeof entry.name === "string" ? entry.name.trim() : "";
+      const email = typeof entry.email === "string" ? entry.email.trim() : "";
+      const controlNumber =
+        typeof entry.controlNumber === "string" && entry.controlNumber.trim()
+          ? entry.controlNumber.trim()
+          : "N/A";
+      const qrFileName =
+        typeof entry.qrFileName === "string" ? entry.qrFileName.trim() : "";
+
+      if (!name || !email || !qrFileName) {
+        throw new Error(`Entry ${index + 1} is missing required fields.`);
+      }
+
+      if (!isValidEmailAddress(email)) {
+        throw new Error(`Invalid email format: ${email}`);
+      }
+
+      if (!isSafeDownloadName(qrFileName)) {
+        throw new Error(`Invalid QR filename: ${qrFileName}`);
+      }
+
+      return {
+        name,
+        email,
+        controlNumber,
+        qrFileName,
+        qrFilePath: join(QR_DIR, qrFileName),
+      };
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Invalid email payload.";
+    return errorResponse(message, 400);
+  }
+
+  const emailResult = await sendSequentialEmails(normalized, logEvent);
+  const targetCount = normalized.length;
+
+  const log = emailResult.enabled
+    ? [
+        ...emailResult.sent.map((item) => ({
+          name: item.name,
+          email: item.email,
+          controlNumber: item.controlNumber,
+          status: "sent" as const,
+        })),
+        ...emailResult.failed.map((item) => ({
+          name: item.name,
+          email: item.email,
+          controlNumber: item.controlNumber,
+          status: "failed" as const,
+          reason: item.reason,
+        })),
+      ]
+    : normalized.map((entry) => ({
+        name: entry.name,
+        email: entry.email,
+        controlNumber: entry.controlNumber,
+        status: "failed" as const,
+        reason: "SMTP not configured.",
+      }));
+
+  return jsonResponse({
+    enabled: emailResult.enabled,
+    targetCount,
+    sentCount: emailResult.sentCount,
+    failedCount: emailResult.failed.length,
+    log,
+  });
+}
+
+/**
  * Handles POST /api/scan requests.
  * Accepts a UUID and returns matching attendee data if found.
  */
@@ -285,6 +402,11 @@ export async function handleApiRequest(request: Request): Promise<Response> {
     // Generate endpoint: runs full QR pipeline with column mapping
     if (request.method === "POST" && pathname === "/api/generate") {
       return await handleGenerateRequest(request);
+    }
+
+    // Send emails endpoint: dispatches SMTP sends for a generated batch
+    if (request.method === "POST" && pathname === "/api/send-emails") {
+      return await handleSendEmailsRequest(request);
     }
 
     // Scan lookup endpoint: returns attendee data by UUID

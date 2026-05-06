@@ -19,7 +19,13 @@ export interface EmailDispatchEntry {
 export interface EmailDispatchResult {
   enabled: boolean; // Whether SMTP is configured and available
   sentCount: number; // Number of emails successfully sent
-  failed: Array<{ email: string; reason: string }>; // Failed deliveries with reasons
+  sent: Array<{ name: string; email: string; controlNumber: string }>; // Sent deliveries
+  failed: Array<{
+    name: string;
+    email: string;
+    controlNumber: string;
+    reason: string;
+  }>; // Failed deliveries with reasons
 }
 
 /**
@@ -74,6 +80,7 @@ export async function sendSequentialEmails(
     return {
       enabled: false,
       sentCount: 0,
+      sent: [],
       failed: [],
     };
   }
@@ -90,7 +97,14 @@ export async function sendSequentialEmails(
   });
 
   let sentCount = 0;
-  const failed: Array<{ email: string; reason: string }> = [];
+  const sent: Array<{ name: string; email: string; controlNumber: string }> =
+    [];
+  const failed: Array<{
+    name: string;
+    email: string;
+    controlNumber: string;
+    reason: string;
+  }> = [];
 
   // Send emails one at a time (sequential, not parallel)
   for (const entry of entries) {
@@ -136,6 +150,11 @@ export async function sendSequentialEmails(
 
       // Increment success counter and log event
       sentCount += 1;
+      sent.push({
+        name: entry.name,
+        email: entry.email,
+        controlNumber: entry.controlNumber,
+      });
       logFn("Email sent", {
         email: entry.email,
         controlNumber: entry.controlNumber,
@@ -144,7 +163,12 @@ export async function sendSequentialEmails(
       // Catch error for this email and continue with next
       const reason =
         error instanceof Error ? error.message : "Unknown SMTP error";
-      failed.push({ email: entry.email, reason });
+      failed.push({
+        name: entry.name,
+        email: entry.email,
+        controlNumber: entry.controlNumber,
+        reason,
+      });
       logFn("Email failed", {
         email: entry.email,
         controlNumber: entry.controlNumber,
@@ -157,6 +181,7 @@ export async function sendSequentialEmails(
   return {
     enabled: true,
     sentCount,
+    sent,
     failed,
   };
 }
