@@ -4,6 +4,9 @@ export const copy = {
   es: {
     nav: {
       toolkit: "Toolkit",
+      scanner: "Escanear",
+      admin: "Admin",
+      userMode: "Modo usuario",
       language: "ES",
     },
     landing: {
@@ -124,6 +127,9 @@ export const copy = {
   en: {
     nav: {
       toolkit: "Toolkit",
+      scanner: "Scan",
+      admin: "Admin",
+      userMode: "User mode",
       language: "EN",
     },
     landing: {

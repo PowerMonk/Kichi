@@ -8,8 +8,7 @@ import { handleApiRequest } from "./routes/api";
 
 /**
  * Serves static frontend assets from the dist folder.
- * Falls back to index.html for SPA (Single Page Application) routing.
- * Prevents directory traversal attacks with path normalization.
+ * Supports Astro's file output shape and prevents directory traversal attacks.
  */
 async function serveFrontendAsset(pathname: string): Promise<Response> {
   // Check if the frontend build directory exists
@@ -22,7 +21,7 @@ async function serveFrontendAsset(pathname: string): Promise<Response> {
     );
   }
 
-  // Root path should serve index.html; all other paths serve as-is
+  // Root path should serve index.html; other routes should resolve to their folder index.
   const requestedPath = pathname === "/" ? "/index.html" : pathname;
 
   // Remove leading slashes/backslashes to prevent path traversal
@@ -33,14 +32,23 @@ async function serveFrontendAsset(pathname: string): Promise<Response> {
     return new Response("Invalid path", { status: 400 });
   }
 
-  // Try to serve the exact file requested
+  // Try to serve the exact file requested first.
   const exactFile = Bun.file(join(FRONTEND_DIST_DIR, normalizedPath));
 
   if (await exactFile.exists()) {
     return new Response(exactFile);
   }
 
-  // Fallback to index.html for SPA routing (allows client-side routing to work)
+  // Astro builds page routes as folder indexes, such as /scanner/index.html.
+  const routeIndex = Bun.file(
+    join(FRONTEND_DIST_DIR, normalizedPath, "index.html"),
+  );
+
+  if (await routeIndex.exists()) {
+    return new Response(routeIndex);
+  }
+
+  // Fallback to index.html for the landing page.
   const fallback = Bun.file(join(FRONTEND_DIST_DIR, "index.html"));
 
   if (await fallback.exists()) {
@@ -63,10 +71,17 @@ getDatabase();
 const port = Number(process.env.PORT ?? "3001");
 
 // Start Bun HTTP server
-Bun.serve({
+const server = Bun.serve({
   port,
   async fetch(request) {
     const url = new URL(request.url);
+
+    // /scan is a friendly alias for the scanner page used on release startup.
+    if (request.method === "GET" && url.pathname === "/scan") {
+      const redirectUrl = new URL("/scanner", request.url);
+      redirectUrl.search = url.search;
+      return Response.redirect(redirectUrl, 302);
+    }
 
     // Route API requests to the API handler
     if (url.pathname.startsWith("/api/")) {
@@ -88,3 +103,18 @@ logEvent("Kichi server started", {
   port,
   apiBase: `http://localhost:${port}/api`,
 });
+
+// Open the scanner page automatically on Windows for packaged releases.
+if (process.platform === "win32" && process.env.KICHI_NO_BROWSER !== "true") {
+  const browserUrl = `http://localhost:${port}/scan`;
+  setTimeout(() => {
+    const browser = Bun.spawn(["cmd", "/c", "start", "", browserUrl], {
+      stdin: "ignore",
+      stdout: "ignore",
+      stderr: "ignore",
+    });
+    browser.exited.catch(() => {
+      // Browser launch failures should not stop the server.
+    });
+  }, 300);
+}

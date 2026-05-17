@@ -7,6 +7,8 @@ import { copy, type Language } from "../lib/site-copy";
 const langParam = Astro.url.searchParams.get("lang");
 const lang: Language = langParam === "en" ? "en" : "es";
 const landingCopy = copy[lang].landing;
+const scannerHref = `/scanner?lang=${lang}`;
+const generateHref = `/generate?lang=${lang}`;
 const pageTitle = "Kichi - Spreadsheet in. QR batch out.";
 ---
 
@@ -41,11 +43,7 @@ const pageTitle = "Kichi - Spreadsheet in. QR batch out.";
             {landingCopy.heroSubtitle}
           </p>
           <div class="flex justify-center pt-2">
-            <a
-              id="hero-cta"
-              class="btn-primary"
-              href={`/generate?lang=${lang}`}
-            >
+            <a id="hero-cta" class="btn-primary" href={scannerHref}>
               {landingCopy.cta}
             </a>
           </div>
@@ -54,11 +52,34 @@ const pageTitle = "Kichi - Spreadsheet in. QR batch out.";
         <TrustedPartners lang={lang} />
       </main>
     </div>
-    <script is:inline define:vars={{ copy }}>
+    <script is:inline define:vars={{ copy, scannerHref, generateHref }}>
       (() => {
+        const storageKey = "kichi-access-mode";
+
         const getLanguage = () => {
           const param = new URLSearchParams(window.location.search).get("lang");
           return param === "en" ? "en" : "es";
+        };
+
+        const getAccessMode = () => {
+          try {
+            const stored = window.localStorage.getItem(storageKey);
+            return stored === "admin" ? "admin" : "user";
+          } catch {
+            return "user";
+          }
+        };
+
+        const updateHeroCta = (language, mode) => {
+          const heroCta = document.getElementById("hero-cta");
+          if (!heroCta) return;
+
+          heroCta.setAttribute(
+            "href",
+            mode === "admin"
+              ? `${generateHref.split("?")[0]}?lang=${language}`
+              : `${scannerHref.split("?")[0]}?lang=${language}`,
+          );
         };
 
         const applyLanguage = (language) => {
@@ -74,12 +95,21 @@ const pageTitle = "Kichi - Spreadsheet in. QR batch out.";
           if (heroSubtitle) heroSubtitle.textContent = landing.heroSubtitle;
           if (heroCta) {
             heroCta.textContent = landing.cta;
-            heroCta.setAttribute("href", `/generate?lang=${language}`);
           }
           if (trustedTitle) trustedTitle.textContent = landing.trusted;
+
+          updateHeroCta(language, getAccessMode());
         };
 
         applyLanguage(getLanguage());
+
+        document.documentElement.dataset.accessMode = getAccessMode();
+
+        window.addEventListener("kichi-access-mode-change", (event) => {
+          const mode = event.detail?.mode === "admin" ? "admin" : "user";
+          updateHeroCta(getLanguage(), mode);
+          document.documentElement.dataset.accessMode = mode;
+        });
 
         window.addEventListener("language-change", (event) => {
           const detail = event.detail;

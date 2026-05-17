@@ -8,6 +8,62 @@ const { lang = "es", currentPath } = Astro.props as {
 };
 ---
 
+<script is:inline>
+  (() => {
+    const storageKey = "kichi-access-mode";
+    const root = document.documentElement;
+
+    const normalizeMode = (value) => (value === "admin" ? "admin" : "user");
+
+    const setMode = (mode) => {
+      root.dataset.accessMode = normalizeMode(mode);
+    };
+
+    const redirectIfNeeded = (mode) => {
+      if (mode === "admin") return;
+
+      const path = window.location.pathname;
+      if (path === "/" || path.startsWith("/scanner")) {
+        return;
+      }
+
+      const redirectUrl = new URL("/scanner", window.location.href);
+      redirectUrl.search = window.location.search;
+      window.location.replace(redirectUrl.toString());
+    };
+
+    const applyStoredMode = () => {
+      try {
+        const stored = window.localStorage.getItem(storageKey);
+        const mode = normalizeMode(stored);
+
+        if (stored !== mode) {
+          window.localStorage.setItem(storageKey, mode);
+        }
+
+        setMode(mode);
+        redirectIfNeeded(mode);
+      } catch {
+        setMode("user");
+        redirectIfNeeded("user");
+      }
+    };
+
+    applyStoredMode();
+
+    window.addEventListener("kichi-access-mode-change", (event) => {
+      const mode = normalizeMode(event.detail?.mode);
+      try {
+        window.localStorage.setItem(storageKey, mode);
+      } catch {
+        // Ignore storage failures in restricted environments.
+      }
+      setMode(mode);
+      redirectIfNeeded(mode);
+    });
+  })();
+</script>
+
 <div class="app-shell">
   <AppSidebar lang={lang} currentPath={currentPath} />
 
