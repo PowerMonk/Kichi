@@ -11,3 +11,8 @@ data/exports/*.zip
 
 # Frontend build output
 frontend/dist/
+
+Kichi_Release/
+Kichi_Release/data/kichi.db
+Kichi_Release/data/kichi.db-shm
+Kichi_Release/data/kichi.db-wal

@@ -42,6 +42,10 @@ body::before {
   mask-image: radial-gradient(circle at 40% 20%, black, transparent 72%);
 }
 
+html:not([data-access-mode="admin"]) .admin-only {
+  display: none !important;
+}
+
 h1,
 h2,
 h3 {

@@ -8,9 +8,8 @@ const { lang = "es", currentPath } = Astro.props as {
 
 const navCopy = copy[lang].nav;
 const homeHref = `/?lang=${lang}`;
+const scannerHref = `/scanner?lang=${lang}`;
 const toolkitHref = `/generate?lang=${lang}`;
-const activePath = currentPath ?? Astro.url?.pathname ?? "/";
-const isToolkitActive = activePath !== "/";
 ---
 
 <header class="glass-strip border-b border-(--line)">
@@ -23,14 +22,16 @@ const isToolkitActive = activePath !== "/";
       class="text-2xl font-semibold tracking-tight">Kichi</a
     >
     <nav class="flex items-center gap-2 sm:gap-3">
-      <a
-        id="nav-toolkit"
-        class={`header-link${isToolkitActive ? " is-active" : ""}`}
-        href={toolkitHref}
-        aria-current={isToolkitActive ? "page" : undefined}
-      >
-        {navCopy.toolkit}
+      <a id="nav-primary" class="header-link" href={scannerHref}>
+        {navCopy.scanner}
       </a>
+      <button
+        id="access-toggle"
+        type="button"
+        class="btn-secondary px-3! py-2! text-[0.68rem]"
+      >
+        {navCopy.admin}
+      </button>
       <button
         id="lang-toggle"
         type="button"
@@ -43,33 +44,112 @@ const isToolkitActive = activePath !== "/";
   </div>
 </header>
 
-<script is:inline define:vars={{ copy }}>
+<script is:inline define:vars={{ copy, scannerHref, toolkitHref }}>
   (() => {
     const button = document.getElementById("lang-toggle");
     const brandLink = document.getElementById("brand-link");
-    const toolkitLink = document.getElementById("nav-toolkit");
+    const primaryLink = document.getElementById("nav-primary");
+    const accessToggle = document.getElementById("access-toggle");
 
-    if (!button || !toolkitLink || !brandLink) return;
+    if (!button || !primaryLink || !accessToggle || !brandLink) return;
+
+    const storageKey = "kichi-access-mode";
+    const adminPassword = "megustanlosgatitos";
 
     const getLanguage = () => {
       const param = new URLSearchParams(window.location.search).get("lang");
       return param === "en" ? "en" : "es";
     };
 
+    const getAccessMode = () => {
+      try {
+        const stored = window.localStorage.getItem(storageKey);
+        return stored === "admin" ? "admin" : "user";
+      } catch {
+        return "user";
+      }
+    };
+
+    const setAccessMode = (mode) => {
+      const safeMode = mode === "admin" ? "admin" : "user";
+
+      try {
+        window.localStorage.setItem(storageKey, safeMode);
+      } catch {
+        // Ignore storage failures in restricted environments.
+      }
+
+      document.documentElement.dataset.accessMode = safeMode;
+
+      const nav = copy[getLanguage()].nav;
+      primaryLink.textContent =
+        safeMode === "admin" ? nav.toolkit : nav.scanner;
+      primaryLink.setAttribute(
+        "href",
+        safeMode === "admin" ? toolkitHref : scannerHref,
+      );
+      accessToggle.textContent =
+        safeMode === "admin" ? nav.userMode : nav.admin;
+
+      window.dispatchEvent(
+        new CustomEvent("kichi-access-mode-change", {
+          detail: { mode: safeMode },
+        }),
+      );
+    };
+
     const applyLanguage = (language) => {
       const nav = copy[language].nav;
-      toolkitLink.textContent = nav.toolkit;
       button.textContent = nav.language;
 
       brandLink.setAttribute("href", `/?lang=${language}`);
-      toolkitLink.setAttribute("href", `/generate?lang=${language}`);
       button.setAttribute(
         "data-target-language",
         language === "es" ? "en" : "es",
       );
+
+      const accessMode = getAccessMode();
+      primaryLink.textContent =
+        accessMode === "admin" ? nav.toolkit : nav.scanner;
+      primaryLink.setAttribute(
+        "href",
+        accessMode === "admin"
+          ? `/generate?lang=${language}`
+          : `/scanner?lang=${language}`,
+      );
+      accessToggle.textContent =
+        accessMode === "admin" ? nav.userMode : nav.admin;
     };
 
     applyLanguage(getLanguage());
+    document.documentElement.dataset.accessMode = getAccessMode();
+
+    accessToggle.addEventListener("click", () => {
+      const currentMode = getAccessMode();
+
+      if (currentMode === "admin") {
+        setAccessMode("user");
+        return;
+      }
+
+      const language = getLanguage();
+      const promptMessage =
+        language === "es"
+          ? "Ingresa la contraseña para acceso completo:"
+          : "Enter the password for full access:";
+      const errorMessage =
+        language === "es" ? "Contraseña incorrecta." : "Incorrect password.";
+      const password = window.prompt(promptMessage);
+
+      if (password === null) return;
+
+      if (password === adminPassword) {
+        setAccessMode("admin");
+        return;
+      }
+
+      window.alert(errorMessage);
+    });
 
     button.addEventListener("click", () => {
       const targetLanguage =
@@ -83,6 +163,8 @@ const isToolkitActive = activePath !== "/";
           detail: { lang: targetLanguage },
         }),
       );
+
+      applyLanguage(targetLanguage);
     });
   })();
 </script>

@@ -46,7 +46,7 @@ const isScannerActive = activePath.startsWith("/scanner");
         <span id="sidebar-home-label">{sidebar.home}</span>
       </a>
     </li>
-    <li>
+    <li class="admin-only">
       <a
         id="sidebar-batch"
         class={`app-sidebar-link${isGenerateActive ? " is-active" : ""}`}
@@ -62,7 +62,7 @@ const isScannerActive = activePath.startsWith("/scanner");
         <span id="sidebar-batch-label">{sidebar.batch}</span>
       </a>
     </li>
-    <li>
+    <li class="admin-only">
       <a
         id="sidebar-email"
         class={`app-sidebar-link${isEmailActive ? " is-active" : ""}`}
