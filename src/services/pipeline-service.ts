@@ -225,7 +225,7 @@ export async function runPipeline(
     });
 
     try {
-      // Generate QR code PNG image
+      // Generate QR code PNG image from the UUID only
       const qrBuffer = await generateQrBuffer(uuid);
 
       // Save QR image to disk

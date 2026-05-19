@@ -58,7 +58,7 @@ const text = copy[lang].generator;
     {text.mappingSubtitle}
   </p>
 
-  <form id="mapping-form" class="mt-6 grid gap-4 sm:grid-cols-2">
+  <form id="mapping-form" class="mt-6 grid gap-4 sm:grid-cols-3">
     <div>
       <label id="label-name" class="field-label" for="map-name"
         >{text.labelName}</label
@@ -71,7 +71,13 @@ const text = copy[lang].generator;
       >
       <select id="map-email" class="field-select mono text-sm"></select>
     </div>
-    <div class="sm:col-span-2 flex flex-wrap gap-3">
+    <div>
+      <label id="label-role" class="field-label" for="map-role"
+        >{text.labelRole}</label
+      >
+      <select id="map-role" class="field-select mono text-sm"></select>
+    </div>
+    <div class="sm:col-span-3 flex flex-wrap gap-3">
       <button id="generate-button" type="submit" class="btn-primary">
         {text.generate}
       </button>
@@ -156,8 +162,10 @@ const text = copy[lang].generator;
     const mappingForm = document.getElementById("mapping-form");
     const mapName = document.getElementById("map-name");
     const mapEmail = document.getElementById("map-email");
+    const mapRole = document.getElementById("map-role");
     const labelName = document.getElementById("label-name");
     const labelEmail = document.getElementById("label-email");
+    const labelRole = document.getElementById("label-role");
     const sendEmailsAction = document.getElementById("send-emails-action");
     const generateButton = document.getElementById("generate-button");
     const resultsSection = document.getElementById("results-section");
@@ -215,6 +223,7 @@ const text = copy[lang].generator;
         mappingSubtitle.textContent = state.text.mappingSubtitle;
       if (labelName) labelName.textContent = state.text.labelName;
       if (labelEmail) labelEmail.textContent = state.text.labelEmail;
+      if (labelRole) labelRole.textContent = state.text.labelRole;
       if (sendEmailsAction) {
         sendEmailsAction.textContent = state.text.sendEmailsAction;
         sendEmailsAction.setAttribute("href", `/email?lang=${state.language}`);
@@ -329,6 +338,13 @@ const text = copy[lang].generator;
       state.columns = payload.columns ?? [];
       buildOptions(mapName, state.columns, ["name", "full_name"]);
       buildOptions(mapEmail, state.columns, ["email", "correo"]);
+      buildOptions(mapRole, state.columns, [
+        "role",
+        "job_title",
+        "position",
+        "cargo",
+        "puesto",
+      ]);
 
       if (mappingSection) mappingSection.classList.remove("hidden");
 
@@ -434,7 +450,7 @@ const text = copy[lang].generator;
         return;
       }
 
-      if (!mapName || !mapEmail) {
+      if (!mapName || !mapEmail || !mapRole) {
         setStatus(t("mappingMissing"), "error");
         return;
       }
@@ -442,6 +458,7 @@ const text = copy[lang].generator;
       const map = {
         name: mapName.value,
         email: mapEmail.value,
+        role: mapRole.value,
       };
 
       const formData = new FormData();
